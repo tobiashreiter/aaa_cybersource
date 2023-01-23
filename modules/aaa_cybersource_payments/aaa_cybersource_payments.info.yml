@@ -1,0 +1,8 @@
+name: Cybersource Payments
+type: module
+description: Creates and manages the entities that map to payments on the Cybersource platform.
+package: AAA
+core_version_requirement: ^8 || ^9
+dependencies:
+  - aaa_cybersource
+configure: entity.payment.settings

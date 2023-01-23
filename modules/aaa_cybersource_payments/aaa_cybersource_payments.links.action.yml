@@ -1,0 +1,5 @@
+payment.add_form:
+  route_name: entity.payment.add_form
+  title: 'Add payment'
+  appears_on:
+    - entity.payment.collection

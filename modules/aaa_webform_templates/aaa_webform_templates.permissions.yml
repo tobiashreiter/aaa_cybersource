@@ -1,0 +1,4 @@
+view aaa_webform_templates receipts:
+  title: 'View donation form receipts'
+  description: 'This permission allows users to bypass receipt availibility limitations. This permission does not work for Anonymous users.'
+  restrict access: true

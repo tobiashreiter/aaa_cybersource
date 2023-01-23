@@ -1,0 +1,13 @@
+administer payment:
+  title: 'Administer payment settings'
+  restrict access: true
+access payment overview:
+  title: 'Access payment overview page'
+delete payment:
+  title: Delete payment
+create payment:
+  title: Create payment
+view payment:
+  title: View payment
+edit payment:
+  title: Edit payment

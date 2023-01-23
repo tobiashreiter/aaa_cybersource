@@ -1,0 +1,11 @@
+name: 'Cybersource Webform Templates'
+type: module
+description: Provides the webform templates for the donation forms which can be copied to create new forms.
+package: AAA
+core_version_requirement: ^9 || ^10
+dependencies:
+  - aaa_cybersource
+  - aaa_cybersource_payments
+  - webform
+  - webform_templates
+  - webform_ui

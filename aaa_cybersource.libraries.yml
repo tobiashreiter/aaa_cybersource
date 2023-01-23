@@ -1,0 +1,4 @@
+settingsForm:
+  version: 1.x-dev
+  js:
+    js/settingsForm.js: {}

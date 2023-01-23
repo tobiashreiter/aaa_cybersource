@@ -1,0 +1,10 @@
+entity.payment.settings:
+  title: Payment
+  description: Configure a Payment entity type
+  route_name:  entity.payment.settings
+  parent: system.admin_structure
+entity.payment.collection:
+  title: Payments
+  description: List of payments
+  route_name: entity.payment.collection
+  parent: system.admin_content

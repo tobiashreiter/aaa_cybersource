@@ -1,0 +1,12 @@
+flex:
+  version: 1.x-dev
+  js:
+    js/flex.js: {}
+  dependencies:
+    - core/drupalSettings
+    - aaa_webform_templates/flex-microform
+
+flex-microform:
+  version: 0.11.6
+  js:
+    https://flex.cybersource.com/cybersource/assets/microform/0.11/flex-microform.min.js: { minified: true, external: true }

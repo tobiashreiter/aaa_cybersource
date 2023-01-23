@@ -1,0 +1,15 @@
+{
+    "name": "smithsonian/aaa_cybersource",
+    "description": "Smithsonian AAA module which integrates CyberSource payment platform.",
+    "type": "drupal-custom-module",
+    "authors": [
+        {
+            "name": "Philip Curley",
+            "email": "philip@interactiveknowledge.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "cybersource/rest-client-php": "^0.0.36"
+    }
+}

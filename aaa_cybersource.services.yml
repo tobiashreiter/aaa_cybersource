@@ -1,0 +1,4 @@
+services:
+  aaa_cybersource.cybersource_client:
+    class: Drupal\aaa_cybersource\CybersourceClient
+    arguments: ['@config.factory', '@file_system', '@logger.factory', '@entity.repository', '@request_stack', '@messenger']

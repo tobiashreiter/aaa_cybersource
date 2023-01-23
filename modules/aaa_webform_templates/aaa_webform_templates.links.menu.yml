@@ -1,0 +1,6 @@
+aaa_webform_teamplates.templates:
+  title: 'Donation Webform Template'
+  description: ''
+  parent: system.admin_config_aaa
+  route_name: aaa_webform_templates.manage
+  weight: 10

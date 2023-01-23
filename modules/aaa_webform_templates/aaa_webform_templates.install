@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * @file
+ * Aaa_webform_templates.install.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function aaa_webform_templates_uninstall() {
+  $webform_id = 'template_donation';
+  $webform_entity = \Drupal::entityTypeManager()->getStorage('webform')->load($webform_id);
+  if (!is_null($webform_entity)) {
+    $webform_entity->delete();
+  }
+}

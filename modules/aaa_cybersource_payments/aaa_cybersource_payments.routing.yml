@@ -1,0 +1,7 @@
+entity.payment.settings:
+  path: 'admin/structure/payment'
+  defaults:
+    _form: '\Drupal\aaa_cybersource_payments\Form\PaymentSettingsForm'
+    _title: 'Payment'
+  requirements:
+    _permission: 'administer payment'

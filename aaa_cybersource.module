@@ -1,0 +1,11 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for aaa_cybersource module.
+ */
+
+function aaa_cybersource_page_attachments(&$variables) {
+  // $variables['#attached']['library'][] = 'aaa_cybersource/cybersource';
+  // $variables['#attached']['drupalSettings']['aaa_cybersource']['token'] = '';
+}

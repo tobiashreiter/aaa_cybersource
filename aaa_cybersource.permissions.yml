@@ -1,0 +1,4 @@
+administer aaa_cybersource keys:
+  title: 'Administer aaa_cybersource keys'
+  description: 'Add/remove/edit Cybersource keys and environments.'
+  restrict access: true
