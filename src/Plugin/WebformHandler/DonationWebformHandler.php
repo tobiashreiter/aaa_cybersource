@@ -3,7 +3,7 @@
 namespace Drupal\aaa_cybersource\Plugin\WebformHandler;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\aaa_cybersource_payments\Entity\Payment;
+use Drupal\aaa_cybersource\Entity\Payment;
 use Drupal\webform\Plugin\WebformHandlerBase;
 use Drupal\webform\WebformInterface;
 use Drupal\webform\WebformSubmissionInterface;
