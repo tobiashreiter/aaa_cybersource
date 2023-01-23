@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\aaa_webform_templates\Controller;
+namespace Drupal\aaa_cybersource\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;

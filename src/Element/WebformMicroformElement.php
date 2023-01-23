@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\aaa_webform_templates\Element;
+namespace Drupal\aaa_cybersource\Element;
 
 use Drupal\webform\Element\WebformCompositeBase;
 

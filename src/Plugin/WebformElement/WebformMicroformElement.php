@@ -1,9 +1,9 @@
 <?php
 
-namespace Drupal\aaa_webform_templates\Plugin\WebformElement;
+namespace Drupal\aaa_cybersource\Plugin\WebformElement;
 
 use Drupal\webform\Plugin\WebformElement\WebformCompositeBase;
-use Drupal\aaa_webform_templates\Element\WebformMicroformElement as Element;
+use Drupal\aaa_cybersource\Element\WebformMicroformElement as Element;
 
 /**
  * Provides a 'webform_microform_element' element.
@@ -17,7 +17,7 @@ use Drupal\aaa_webform_templates\Element\WebformMicroformElement as Element;
  *   multiline = TRUE,
  * )
  *
- * @see \Drupal\aaa_webform_templates\Element\WebformMicroformElement
+ * @see \Drupal\aaa_cybersource\Element\WebformMicroformElement
  * @see \Drupal\webform\Plugin\WebformElementBase
  * @see \Drupal\webform\Plugin\WebformElementInterface
  * @see \Drupal\webform\Annotation\WebformElement

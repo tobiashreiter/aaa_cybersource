@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\aaa_webform_templates\Plugin\WebformHandler;
+namespace Drupal\aaa_cybersource\Plugin\WebformHandler;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\aaa_cybersource_payments\Entity\Payment;
@@ -81,7 +81,7 @@ class DonationWebformHandler extends WebformHandlerBase {
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
-    $instance->loggerFactory = $container->get('logger.factory')->get('aaa_webform_templates');
+    $instance->loggerFactory = $container->get('logger.factory')->get('aaa_cybersource');
     $instance->configFactory = $container->get('config.factory');
     $instance->conditionsValidator = $container->get('webform_submission.conditions_validator');
     $instance->entityTypeManager = $container->get('entity_type.manager');
@@ -388,7 +388,14 @@ class DonationWebformHandler extends WebformHandlerBase {
   private function getCodePrefix() {
     $settings = $this->configFactory->get('aaa_cybersource.settings');
     $webform_id = $this->webform->get('uuid');
-    return $settings->get($webform_id . '_code') ?? 'AAA';
+    $prefix = $settings->get($webform_id . '_code');
+
+    if (empty($prefix) === TRUE) {
+      return 'AAA';
+    }
+    else {
+      return $prefix;
+    }
   }
 
 }

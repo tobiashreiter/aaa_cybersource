@@ -146,10 +146,10 @@ class SettingsForm extends ConfigFormBase {
       '#type' => 'select',
       '#title' => $this->t('Environment'),
       '#options' => [
-        'production' => $this->t('Production'),
         'development' => $this->t('Development'),
+        'production' => $this->t('Production'),
       ],
-      '#default_value' => $config->get('global')['environment'] ?? '',
+      '#default_value' => $config->get('global')['environment'] ?? 'development',
     ];
 
     $form['global']['fieldset']['auth'] = [

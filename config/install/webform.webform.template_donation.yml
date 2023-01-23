@@ -3,7 +3,7 @@ langcode: en
 status: open
 dependencies:
   module:
-    - aaa_webform_templates
+    - aaa_cybersource
   enforced:
     module:
       - webform_templates
