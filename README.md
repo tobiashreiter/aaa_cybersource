@@ -36,5 +36,4 @@ All the necessary elements are already added to the form but most elements outsi
 ## Payment entity
 Webform submissions will store incoming data from the forms. However it's not a good permanent solution to storing payment data because submissions can be deleted when forms are removed and because form submissions exist as a record of what the form receieved. The Payment entity will exist to record and track the payment and transaction information. They will not be removed if forms are deleted at a future date.
 
-## Links
 [^1]: Create a P12 Certificate for JSON Web Token Authentication https://developer.cybersource.com/docs/cybs/en-us/payouts/developer/all/rest/payouts/authentication/createCert.html
