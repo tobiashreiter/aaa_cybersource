@@ -21,7 +21,7 @@ Enable the `aaa_cybersource` module.
 ## Configuration
 The configuration base route is at `/admin/config/aaa`.
 
-**Cybersource Form Settings**
+### Cybersource Form Settings
 This form configures the global and per-form settings related to CyberSource and other various options.
 
 It is necessary to obtain a Merchant ID and a JWT Certificate[^1] from CyberSource.

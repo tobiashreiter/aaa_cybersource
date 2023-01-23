@@ -1,5 +1,6 @@
 {
     "name": "smithsonian/aaa_cybersource",
+    "version": "1.0.0-dev",
     "description": "Smithsonian AAA module which integrates CyberSource payment platform.",
     "type": "drupal-custom-module",
     "authors": [
