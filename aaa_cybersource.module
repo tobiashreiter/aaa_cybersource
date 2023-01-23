@@ -85,5 +85,5 @@ function aaa_cybersource_webform_update($entity) {
  * Implements_webform_submission_form_alter().
  */
 function aaa_cybersource_webform_submission_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
-  $form['#attached']['library'][] = 'aaa_webform_templates/flex';
+  $form['#attached']['library'][] = 'aaa_cybersource/flex';
 }

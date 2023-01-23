@@ -26,20 +26,20 @@ aaa_cybersource.token:
   methods: [GET]
   requirements:
     _access: 'TRUE'
-aaa_webform_templates.manage:
+aaa_cybersource.manage_templates:
   path: '/admin/config/aaa/templates'
   defaults:
-    _controller: '\Drupal\aaa_webform_templates\Controller\AaaWebformTemplatesRouting::routeToDonationTemplates'
+    _controller: '\Drupal\aaa_cybersource\Controller\AaaWebformTemplatesRouting::routeToDonationTemplates'
     _title: 'AAA Cybersource Forms'
     manage: true
   requirements:
     _custom_access: '\Drupal\webform\Access\WebformAccountAccess::checkTemplatesAccess'
     _permission: 'administer webform templates'
-aaa_webform_templates.webform.receipt:
+aaa_cybersource.webform.receipt:
   path: '/webform/{webform}/receipt'
   defaults:
     _title: 'Receipt'
-    _controller: '\Drupal\aaa_webform_templates\Controller\AaaWebformTemplatesReceiptController::receipt'
+    _controller: '\Drupal\aaa_cybersource\Controller\AaaWebformTemplatesReceiptController::receipt'
   requirements:
     _entity_access: 'webform.view'
   options:

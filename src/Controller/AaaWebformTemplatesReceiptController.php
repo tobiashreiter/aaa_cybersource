@@ -121,7 +121,7 @@ class AaaWebformTemplatesReceiptController extends ControllerBase {
           throw new NotFoundHttpException();
         }
         // If authenticated user has permissions then allow them to view.
-        elseif ($this->currentUser->hasPermission('view aaa_webform_templates receipts') === FALSE) {
+        elseif ($this->currentUser->hasPermission('view aaa_cybersource receipts') === FALSE) {
           throw new NotFoundHttpException();
         }
       }

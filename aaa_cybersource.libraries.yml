@@ -4,7 +4,7 @@ flex:
     js/flex.js: {}
   dependencies:
     - core/drupalSettings
-    - aaa_webform_templates/flex-microform
+    - aaa_cybersource/flex-microform
 
 flex-microform:
   version: 0.11.6
