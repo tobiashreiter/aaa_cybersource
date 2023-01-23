@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\aaa_cybersource_payments;
+namespace Drupal\aaa_cybersource;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityChangedInterface;
@@ -25,7 +25,7 @@ interface PaymentInterface extends ContentEntityInterface, EntityChangedInterfac
    * @param int $timestamp
    *   The payment creation timestamp.
    *
-   * @return \Drupal\aaa_cybersource_payments\PaymentInterface
+   * @return \Drupal\aaa_cybersource\PaymentInterface
    *   The called payment entity.
    */
   public function setCreatedTime($timestamp);

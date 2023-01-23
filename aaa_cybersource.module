@@ -6,8 +6,37 @@
  */
 
 use \Drupal\Core\Form\FormStateInterface;
-use Drupal\aaa_cybersource_payments\Entity\Payment;
+use Drupal\Core\Render\Element;
+use Drupal\aaa_cybersource\Entity\Payment;
 use Drupal\webform\WebformSubmissionInterface;
+
+/**
+ * Implements hook_theme().
+ */
+function aaa_cybersource_theme() {
+  return [
+    'payment' => [
+      'render element' => 'elements',
+    ],
+  ];
+}
+
+/**
+ * Prepares variables for payment templates.
+ *
+ * Default template: payment.html.twig.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - elements: An associative array containing the payment information and any
+ *     fields attached to the entity.
+ *   - attributes: HTML attributes for the containing element.
+ */
+function template_preprocess_payment(array &$variables) {
+  foreach (Element::children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+}
 
 /**
  * Implements hook_entity_type_insert().
@@ -20,13 +49,6 @@ function aaa_cybersource_webform_submission_insert(WebformSubmissionInterface $e
     $payment->set('submission', $entity->id());
     $payment->save();
   }
-}
-
-/**
- * Implements hook_theme().
- */
-function aaa_cybersource_theme($existing, $type, $theme, $path) {
-  return [];
 }
 
 /**

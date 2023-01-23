@@ -1,13 +1,13 @@
 <?php
 
-namespace Drupal\aaa_cybersource_payments\Entity;
+namespace Drupal\aaa_cybersource\Entity;
 
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\EntityStorageInterface;
-use Drupal\aaa_cybersource_payments\PaymentInterface;
+use Drupal\aaa_cybersource\PaymentInterface;
 
 /**
  * Defines the payment entity class.
@@ -24,12 +24,12 @@ use Drupal\aaa_cybersource_payments\PaymentInterface;
  *   label_collection = @Translation("Payments"),
  *   handlers = {
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
- *     "list_builder" = "Drupal\aaa_cybersource_payments\PaymentListBuilder",
+ *     "list_builder" = "Drupal\aaa_cybersource\PaymentListBuilder",
  *     "views_data" = "Drupal\views\EntityViewsData",
- *     "access" = "Drupal\aaa_cybersource_payments\PaymentAccessControlHandler",
+ *     "access" = "Drupal\aaa_cybersource\PaymentAccessControlHandler",
  *     "form" = {
- *       "add" = "Drupal\aaa_cybersource_payments\Form\PaymentForm",
- *       "edit" = "Drupal\aaa_cybersource_payments\Form\PaymentForm",
+ *       "add" = "Drupal\aaa_cybersource\Form\PaymentForm",
+ *       "edit" = "Drupal\aaa_cybersource\Form\PaymentForm",
  *       "delete" = "Drupal\Core\Entity\ContentEntityDeleteForm"
  *     },
  *     "route_provider" = {

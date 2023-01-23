@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\aaa_cybersource_payments\Form;
+namespace Drupal\aaa_cybersource\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;

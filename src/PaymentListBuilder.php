@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\aaa_cybersource_payments;
+namespace Drupal\aaa_cybersource;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityListBuilder;
@@ -90,7 +90,7 @@ class PaymentListBuilder extends EntityListBuilder {
    * {@inheritdoc}
    */
   public function buildRow(EntityInterface $entity) {
-    /* @var $entity \Drupal\aaa_cybersource_payments\PaymentInterface */
+    /* @var $entity \Drupal\aaa_cybersource\PaymentInterface */
     $row['id'] = $entity->toLink();
     $row['status'] = $entity->getStatus();
     $row['recurring'] = $entity->isRecurring() ? 'Yes' : 'No';

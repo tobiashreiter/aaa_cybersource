@@ -6,3 +6,16 @@ view aaa_cybersource receipts:
   title: 'View donation form receipts'
   description: 'This permission allows users to bypass receipt availibility limitations. This permission does not work for Anonymous users.'
   restrict access: true
+administer payment:
+  title: 'Administer payment settings'
+  restrict access: true
+access payment overview:
+  title: 'Access payment overview page'
+delete payment:
+  title: Delete payment
+create payment:
+  title: Create payment
+view payment:
+  title: View payment
+edit payment:
+  title: Edit payment

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\aaa_cybersource_payments;
+namespace Drupal\aaa_cybersource;
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityAccessControlHandler;

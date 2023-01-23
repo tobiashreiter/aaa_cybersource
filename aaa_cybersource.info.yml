@@ -4,8 +4,6 @@ description: Base module for SI:AAA Drupal integration with Cybersource payment 
 package: AAA
 core_version_requirement: ^9 || ^10
 dependencies:
-  - aaa_cybersource
-  - aaa_cybersource_payments
   - webform
   - webform_templates
   - webform_ui
