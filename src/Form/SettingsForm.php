@@ -234,10 +234,12 @@ class SettingsForm extends ConfigFormBase {
       '#value' => 'Forms settings',
     ];
 
-    $form['forms']['tabs'] = [
-      '#type' => 'vertical_tabs',
-      '#default_tab' => 'edit-' . $forms_ids[0],
-    ];
+    if (count($forms_ids) > 0) {
+      $form['forms']['tabs'] = [
+        '#type' => 'vertical_tabs',
+        '#default_tab' => 'edit-' . $forms_ids[0],
+      ];
+    }
 
     $this->buildFormsTabs($form);
 
