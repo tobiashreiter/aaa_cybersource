@@ -1,0 +1,13 @@
+diff --git a/lib/Api/KeyGenerationApi.php b/lib/Api/KeyGenerationApi.php
+index dadcd39eb..a6980a3ea 100644
+--- a/lib/Api/KeyGenerationApi.php
++++ b/lib/Api/KeyGenerationApi.php
+@@ -174,7 +174,7 @@ public function generatePublicKeyWithHttpInfo($format, $generatePublicKeyRequest
+                 $printHttpBody = $httpBody;
+             }
+
+-            self::$logger->debug("Body Parameter :\n" . $printHttpBody);
++            // self::$logger->debug("Body Parameter :\n" . $printHttpBody);
+         }
+
+         self::$logger->debug("Return Type : \CyberSource\Model\FlexV1KeysPost200Response");
