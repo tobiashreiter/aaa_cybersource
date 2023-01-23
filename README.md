@@ -24,7 +24,7 @@ The configuration base route is at `/admin/config/aaa`.
 **Cybersource Form Settings**
 This form configures the global and per-form settings related to CyberSource and other various options.
 
-It is necessary to obtain a Merchant ID and a [jwt-certificate][1] from CyberSource.
+It is necessary to obtain a Merchant ID and a JWT Certificate[^1] from CyberSource.
 
 When you add new forms their individual options will appear at the bottom of the page.
 
@@ -37,4 +37,4 @@ All the necessary elements are already added to the form but most elements outsi
 Webform submissions will store incoming data from the forms. However it's not a good permanent solution to storing payment data because submissions can be deleted when forms are removed and because form submissions exist as a record of what the form receieved. The Payment entity will exist to record and track the payment and transaction information. They will not be removed if forms are deleted at a future date.
 
 ## Links
-[1]: https://developer.cybersource.com/docs/cybs/en-us/payouts/developer/all/rest/payouts/authentication/createCert.html "JWT Certificate"
+[^1]: Create a P12 Certificate for JSON Web Token Authentication https://developer.cybersource.com/docs/cybs/en-us/payouts/developer/all/rest/payouts/authentication/createCert.html
