@@ -20,9 +20,10 @@ aaa_cybersource.test:
   requirements:
     _permission: 'access administration pages'
 aaa_cybersource.token:
-  path: '/admin/config/aaa/token'
+  path: '/admin/config/aaa/token/{webform}'
   defaults:
     _controller: \Drupal\aaa_cybersource\Controller\Cybersource::getFlexToken
+    webform: ''
   methods: [GET]
   requirements:
     _access: 'TRUE'

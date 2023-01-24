@@ -22,14 +22,18 @@ gala_production_secret_key: ''
 gala_development_access_key: ''
 gala_development_secret_key: ''
 global:
-  auth: 'HTTP_SIGNATURE'
-  certificate:
-    fid: ''
+  auth: 'JWT'
+  development:
+    certificate:
+      fid: ''
+    merchant_id: ''
+    merchant_key: ''
+    merchant_secret: ''
   environment: 'development'
-  hosts:
-    development: 'apitest.cybersource.com'
-    production: 'api.cybersource.com'
-  merchant_id: ''
-  merchant_key: ''
-  merchant_secret: ''
+  production:
+    certificate:
+      fid: ''
+    merchant_id: ''
+    merchant_key: ''
+    merchant_secret: ''
   receipt_availibility: 7

@@ -202,21 +202,23 @@ class CybersourceClient {
     $this->messenger = $messenger;
 
     // Client isn't ready.
-    $this->setReady(FALSE);
+    $ready = FALSE;
+    $this->setReady($ready);
 
     $settings = $this->configFactory->get('aaa_cybersource.settings');
     $global = $settings->get('global');
 
     if (is_null($global) === FALSE) {
-      // Set Development. Let Client switch to Production when ready.
+      // Initialize with development host until ready.
       $this->setRequestHost('apitest.cybersource.com');
-      $this->setAuth($global['auth']);
-      $this->setMerchantId($global['merchant_id']);
-      $this->setMerchantKey($global['merchant_key']);
-      $this->setMerchantSecretKey($global['merchant_secret']);
 
-      if (is_null($global['certificate']['fid']) === FALSE) {
-        $file = $this->entityRepository->getActive('file', $global['certificate']['fid']);
+      $this->setAuth($global['auth']);
+      $this->setMerchantId($global[$global['environment']]['merchant_id']);
+      $this->setMerchantKey($global[$global['environment']]['merchant_key']);
+      $this->setMerchantSecretKey($global[$global['environment']]['merchant_secret']);
+
+      if (is_null($global[$global['environment']]['certificate']['fid']) === FALSE) {
+        $file = $this->entityRepository->getActive('file', $global[$global['environment']]['certificate']['fid']);
 
         if (is_null($file) === FALSE) {
           $uri = $file->getFileUri();
@@ -225,6 +227,8 @@ class CybersourceClient {
 
           $this->setCertificateDirectory($realpath . DIRECTORY_SEPARATOR);
           $this->setCertificateFile(explode('.', $this->fileSystem->basename($uri))[0]);
+
+          $ready = TRUE;
         }
       }
 
@@ -235,7 +239,8 @@ class CybersourceClient {
       $this->setApiClient($api_client);
 
       // Client is ready.
-      $this->setReady(TRUE);
+      $this->setReady($ready);
+      $this->setEnvironment($global['environment']);
     }
   }
 

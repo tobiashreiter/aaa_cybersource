@@ -30,7 +30,16 @@
       Drupal.behaviors.aaaWebformTemplates.microform = microform
     },
     fetchToken: async function() {
-      const token = await fetch('/admin/config/aaa/token')
+      let webform_id = drupalSettings.aaa_cybersource.webform
+
+      // Alternative look-up. May not be necessary.
+      if (!webform_id) {
+        const webform = document.querySelector('.webform-submission-form')
+        const id = webform.getAttribute('id')
+        webform_id = id.replace('webform-submission-', '').replace('-add-form', '').replaceAll('-', '_')
+      }
+
+      const token = await fetch(`/admin/config/aaa/token/${webform_id}`)
       .then(function(res) {
         return res.json()
       })

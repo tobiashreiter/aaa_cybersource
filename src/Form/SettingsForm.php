@@ -44,7 +44,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * Minimum number of days a receipt is available.
    *
-   * @var
+   * @var int
    */
   private $receiptAvailibilityMin = 1;
 
@@ -66,25 +66,7 @@ class SettingsForm extends ConfigFormBase {
     $this->configFactory = $config_factory;
     $this->entityTypeManager = $entity_type_manager;
     $this->entityRepository = $entity_repository;
-
-    $this->forms = [
-      // Old AAA Forms.
-      // 'donation' => [
-      //   'description' => $this->t('AAA Donation Profile - for general donations on the /support page'),
-      //   'title' => $this->t('Donation Profile'),
-      //   'webform' => FALSE,
-      // ],
-      // 'tickets' => [
-      //   'description' => $this->t('AAA 2020 Gala Donation Profile - this was created to support the 2020/2021 gala which was a donation instead of a ticket purchase.'),
-      //   'title' => $this->t('Gala Tickets'),
-      //   'webform' => FALSE,
-      // ],
-      // 'gala' => [
-      //   'description' => $this->t('AAA Tickets Profile - for the table of tickets/tables relating to gala'),
-      //   'title' => $this->t('Gala Donation (2020/2021)'),
-      //   'webform' => FALSE,
-      // ],
-    ];
+    $this->forms = [];
 
     // Include all webforms tagged Cybersource.
     $webform_ids = $this->entityTypeManager->getStorage('webform')->getQuery('AND')->condition('template', TRUE, '<>')->condition('category', 'Cybersource')->execute();
@@ -162,52 +144,6 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('global')['auth'] ?? '',
     ];
 
-    $form['global']['fieldset']['merchant_id'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Merchant ID'),
-      '#default_value' => $config->get('global')['merchant_id'] ?? '',
-      '#required' => TRUE,
-    ];
-
-    $form['global']['fieldset']['merchant_key'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Merchant Key'),
-      '#default_value' => $config->get('global')['merchant_key'] ?? '',
-      '#states' => [
-        'required' => [
-          ':input[name="auth"]' => ['value' => 'HTTP_SIGNATURE'],
-        ],
-      ],
-    ];
-
-    $form['global']['fieldset']['merchant_secret'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Merchant Shared Secret'),
-      '#default_value' => $config->get('global')['merchant_secret'] ?? '',
-      '#states' => [
-        'required' => [
-          ':input[name="auth"]' => ['value' => 'HTTP_SIGNATURE'],
-        ],
-      ],
-    ];
-
-    $fileExists = $config->get('global')['certificate']['fid'] ?? FALSE;
-    $form['global']['fieldset']['certificate'] = [
-      '#type' => 'managed_file',
-      '#upload_location' => 'private://cybersource',
-      '#upload_validators' => [
-        'file_validate_extensions' => ['pem p12'],
-      ],
-      '#default_value' => $fileExists === TRUE ? [$config->get('global')['certificate']['fid']] : [],
-      '#description' => $fileExists ? $this->t('OK. Certificate previously uploaded.') : $this->t('Warning. No certificate stored'),
-      '#title' => $this->t('JWT Certificate'),
-      '#states' => [
-        'required' => [
-          ':input[name="auth"]' => ['value' => 'JWT'],
-        ],
-      ],
-    ];
-
     $form['global']['fieldset']['receipt_availibility'] = [
       '#type' => 'number',
       '#title' => $this->t('Days of receipt availibility'),
@@ -222,6 +158,20 @@ class SettingsForm extends ConfigFormBase {
       '#max' => $this->receiptAvailibilityMax,
       '#default_value' => $config->get('global')['receipt_availibility'] ?? 7,
     ];
+
+    $form['global']['development'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Development account settings.'),
+    ];
+
+    $this->buildAccountElements($form, 'development');
+
+    $form['global']['production'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Production account settings.'),
+    ];
+
+    $this->buildAccountElements($form, 'production');
 
     // Individual forms settings.
     $form['forms'] = [
@@ -256,28 +206,6 @@ class SettingsForm extends ConfigFormBase {
     if ($receipt_availability < $this->receiptAvailibilityMin || $receipt_availability > $this->receiptAvailibilityMax) {
       $form_state->setErrorByName('receipt_availibility', $this->t('Invalid number.'));
     }
-
-    $forms = $this->getFormsIds();
-    // foreach ($forms as $form_id) {
-    //   $env_setting = $form_state->getValue($form_id . '_environment', '');
-
-    //   if (!empty($env_setting)) {
-    //     $profile = $form_state->getValue($form_id . '_' . $env_setting . '_profile', '');
-    //     if (empty($profile)) {
-    //       $form_state->setErrorByName($form_id . '_' . $env_setting . '_profile', $this->t('Profile ID must be set in order to use this environment.'));
-    //     }
-
-    //     $access_key = $form_state->getValue($form_id . '_' . $env_setting . '_access_key', '');
-    //     if (empty($access_key)) {
-    //       $form_state->setErrorByName($form_id . '_' . $env_setting . '_access_key', $this->t('Access Key must be set in order to use this environment.'));
-    //     }
-
-    //     $secret_key = $form_state->getValue($form_id . '_' . $env_setting . '_secret_key', '');
-    //     if (empty($secret_key)) {
-    //       $form_state->setErrorByName($form_id . '_' . $env_setting . '_secret_key', $this->t('Secret Key must be set in order to use this environment.'));
-    //     }
-    //   }
-    // }
   }
 
   /**
@@ -303,24 +231,27 @@ class SettingsForm extends ConfigFormBase {
     }
 
     $global = $config->get('global');
-    $formFile = $form_state->getValue('certificate', 0);
-    if (is_array($formFile) && isset($formFile[0])) {
-      $file = File::load($formFile[0]);
-      $file->setPermanent();
-      $file->save();
-    }
-    elseif (is_null($global['certificate']['fid']) === FALSE) {
-      $file = File::load($global['certificate']['fid']);
-    }
+    $devFile = $this->getJwtFile($form_state, $global, 'development');
+    $prodFile = $this->getJwtFile($form_state, $global, 'production');
 
     $config->set('global', [
       'auth' => $form_state->getValue('auth', $global['auth'] ?? ''),
+      'development' => [
+        'merchant_id' => $form_state->getValue('development_merchant_id', $global['development']['merchant_id'] ?? ''),
+        'merchant_key' => $form_state->getValue('development_merchant_key', $global['development']['merchant_key'] ?? ''),
+        'merchant_secret' => $form_state->getValue('development_merchant_secret', $global['development']['merchant_secret'] ?? ''),
+        'certificate' => [
+          'fid' => isset($devFile) ? $devFile->id() : NULL,
+        ],
+      ],
       'environment' => $form_state->getValue('environment', $global['environment'] ?? ''),
-      'merchant_id' => $form_state->getValue('merchant_id', $global['merchant_id'] ?? ''),
-      'merchant_key' => $form_state->getValue('merchant_key', $global['merchant_key'] ?? ''),
-      'merchant_secret' => $form_state->getValue('merchant_secret', $global['merchant_secret'] ?? ''),
-      'certificate' => [
-        'fid' => isset($file) ? $file->id() : NULL,
+      'production' => [
+        'merchant_id' => $form_state->getValue('production_merchant_id', $global['production']['merchant_id'] ?? ''),
+        'merchant_key' => $form_state->getValue('production_merchant_key', $global['production']['merchant_key'] ?? ''),
+        'merchant_secret' => $form_state->getValue('production_merchant_secret', $global['production']['merchant_secret'] ?? ''),
+        'certificate' => [
+          'fid' => isset($prodFile) ? $prodFile->id() : NULL,
+        ],
       ],
       'receipt_availibility' => $form_state->getValue('receipt_availibility', $global['receipt_availibility'] ?? 7),
     ]);
@@ -328,6 +259,33 @@ class SettingsForm extends ConfigFormBase {
     $config->save();
 
     parent::submitForm($form, $form_state);
+  }
+
+  /**
+   * Find and return the jwt cert file given the environment.
+   *
+   * @param FormStateInterface $form_state
+   *   Form State.
+   * @param array $global
+   *   The global settings array.
+   * @param string $environment
+   *   Name of the environment.
+   */
+  private function getJwtFile(FormStateInterface &$form_state, array &$global, string $environment) {
+    $formFile = $form_state->getValue($environment . '_certificate', 0);
+    if (is_array($formFile) && isset($formFile[0])) {
+      $file = File::load($formFile[0]);
+      $file->setPermanent();
+      $file->save();
+    }
+    elseif (is_null($global[$environment]['certificate']['fid']) === FALSE) {
+      $file = File::load($global[$environment]['certificate']['fid']);
+    }
+    else {
+      $file = NULL;
+    }
+
+    return $file;
   }
 
   /**
@@ -371,6 +329,48 @@ class SettingsForm extends ConfigFormBase {
   }
 
   /**
+   * Build account fieldset elements.
+   *
+   * @param array &$form
+   *   The form array.
+   * @param string $environment
+   *   Name of the environment.
+   */
+  private function buildAccountElements(array &$form, string $environment) {
+    $config = $this->config('aaa_cybersource.settings');
+
+    $form['global'][$environment][$environment . '_merchant_id'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Merchant ID'),
+      '#default_value' => $config->get('global')[$environment]['merchant_id'] ?? '',
+    ];
+
+    $form['global'][$environment][$environment . '_merchant_key'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Merchant Key'),
+      '#default_value' => $config->get('global')[$environment]['merchant_key'] ?? '',
+    ];
+
+    $form['global'][$environment][$environment . '_merchant_secret'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Merchant Shared Secret'),
+      '#default_value' => $config->get('global')[$environment]['merchant_secret'] ?? '',
+    ];
+
+    $fileExists = $config->get('global')[$environment]['certificate']['fid'] ?? FALSE;
+    $form['global'][$environment][$environment . '_certificate'] = [
+      '#type' => 'managed_file',
+      '#upload_location' => 'private://cybersource',
+      '#upload_validators' => [
+        'file_validate_extensions' => ['pem p12'],
+      ],
+      '#default_value' => $fileExists === TRUE ? [$config->get('global')[$environment]['certificate']['fid']] : [],
+      '#description' => $fileExists ? $this->t('OK. Certificate previously uploaded.') : $this->t('Warning. No certificate stored'),
+      '#title' => $this->t('JWT Certificate'),
+    ];
+  }
+
+  /**
    * Build the elements for each form.
    *
    * @param array &$form
@@ -403,36 +403,6 @@ class SettingsForm extends ConfigFormBase {
       if ($this->formHasLink($form_id)) {
         $form['forms']['tabs'][$form_id]['link'] = $this->getFormLink($form_id);
       }
-
-      // foreach ($environments as $environment) {
-      //   $form['forms']['tabs'][$form_id][$environment] = [
-      //     '#type' => 'fieldset',
-      //     '#title' => $this->t(':environment Environment', [':environment' => ucwords($environment)]),
-      //   ];
-
-      //   $key = $form_id . '_' . $environment . '_profile';
-      //   $form['forms']['tabs'][$form_id][$environment][$key] = [
-      //     '#type' => 'textfield',
-      //     '#title' => 'Profile ID',
-      //     '#default_value' => $this->config('aaa_cybersource.settings')->get($key) ?? '',
-      //   ];
-
-      //   $key = $form_id . '_' . $environment . '_access_key';
-      //   $form['forms']['tabs'][$form_id][$environment][$key] = [
-      //     '#type' => 'textfield',
-      //     '#title' => 'Access Key',
-      //     '#default_value' => $this->config('aaa_cybersource.settings')->get($key) ?? '',
-      //   ];
-
-      //   $key = $form_id . '_' . $environment . '_secret_key';
-      //   $form['forms']['tabs'][$form_id][$environment][$key] = [
-      //     '#type' => 'textfield',
-      //     '#title' => 'Secret Key',
-      //     '#maxlength' => 256,
-      //     '#default_value' => $this->config('aaa_cybersource.settings')->get($key) ?? '',
-      //   ];
-
-      // }
 
       if ($this->forms[$form_id]['webform'] === TRUE) {
         $key = $form_id . '_code';
@@ -471,8 +441,10 @@ class SettingsForm extends ConfigFormBase {
    * Get the link element.
    *
    * @param string $form_id
+   *   The machine id of the form.
    *
    * @return array
+   *   Form information.
    */
   private function getFormLink($form_id) {
     return $this->forms[$form_id]['link'];
@@ -482,8 +454,10 @@ class SettingsForm extends ConfigFormBase {
    * Check if link exists.
    *
    * @param string $form_id
+   *   The machine id of the form.
    *
    * @return bool
+   *   Check if the form value is set.
    */
   private function formHasLink($form_id) {
     return isset($this->forms[$form_id]['link']);

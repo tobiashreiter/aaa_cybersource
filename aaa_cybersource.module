@@ -108,4 +108,5 @@ function aaa_cybersource_webform_update($entity) {
  */
 function aaa_cybersource_webform_submission_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
   $form['#attached']['library'][] = 'aaa_cybersource/flex';
+  $form['#attached']['drupalSettings']['aaa_cybersource']['webform'] = $form['#webform_id'];
 }

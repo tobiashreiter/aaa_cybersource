@@ -5,6 +5,7 @@ namespace Drupal\aaa_cybersource\Controller;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Entity\EntityRepository;
 use Drupal\Core\File\FileSystem;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\aaa_cybersource\CybersourceClient;
@@ -58,6 +59,7 @@ class Cybersource extends ControllerBase implements ContainerInjectionInterface 
   protected $settings;
   protected $apiClient;
   protected $cybersourceClient;
+  protected $entityRepository;
 
   /**
    * Cybersource controller constructor.
@@ -73,12 +75,13 @@ class Cybersource extends ControllerBase implements ContainerInjectionInterface 
    * @param CybersourceClient $cybersource_client
    *   The Cybersource Client service.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ClientInterface $http_client, LoggerChannelFactoryInterface $logger, FileSystem $file_system, CybersourceClient $cybersource_client) {
+  public function __construct(ConfigFactoryInterface $config_factory, ClientInterface $http_client, LoggerChannelFactoryInterface $logger, FileSystem $file_system, CybersourceClient $cybersource_client, EntityRepository $entity_repository) {
     $this->configFactory = $config_factory;
     $this->httpClient = $http_client;
     $this->logger = $logger;
     $this->fileSystem = $file_system;
     $this->cybersourceClient = $cybersource_client;
+    $this->entityRepository = $entity_repository;
   }
 
   /**
@@ -92,6 +95,7 @@ class Cybersource extends ControllerBase implements ContainerInjectionInterface 
       $container->get('logger.factory'),
       $container->get('file_system'),
       $container->get('aaa_cybersource.cybersource_client'),
+      $container->get('entity.repository'),
     );
   }
 
@@ -123,7 +127,23 @@ class Cybersource extends ControllerBase implements ContainerInjectionInterface 
    * @return Symfony\Component\HttpFoundation\JsonResponse
    *   The Flex Token.
    */
-  public function getFlexToken(): JsonResponse {
+  public function getFlexToken(string $webform): JsonResponse {
+    $settings = $this->configFactory->get('aaa_cybersource.settings');
+
+    if (empty($webform) === FALSE) {
+      $webform_entity = $this->entityRepository->getActive('webform', $webform);
+    }
+
+    if (isset($webform_entity) === TRUE) {
+      $environment = $settings->get($webform_entity->get('uuid') . '_environment');
+    }
+
+    if (empty($environment) === TRUE) {
+      $global = $settings->get('global');
+      $environment = $global['environment'];
+    }
+
+    $this->cybersourceClient->setEnvironment($environment);
     $flexToken = $this->cybersourceClient->getFlexToken();
 
     return new JsonResponse($flexToken);
