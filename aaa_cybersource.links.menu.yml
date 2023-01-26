@@ -1,19 +1,18 @@
-system.admin_config_aaa:
-  title: 'AAA Donation Platform'
-  route_name: system.admin_config_aaa
+system.admin_config_cybersource:
+  title: 'Cybersource Donation Platform'
+  route_name: system.admin_config_cybersource
   parent: system.admin_config
   description: 'Settings specific to the SI: AAA website including the donations platform.'
-  weight: -100
 aaa_cybersource.settings_form:
   title: 'Cybersource Form Settings'
   description: 'Configure form keys, environment information, and other form options.'
-  parent: system.admin_config_aaa
+  parent: system.admin_config_cybersource
   route_name: aaa_cybersource.settings_form
   weight: 10
 aaa_cybersource.templates:
   title: 'Donation Webform Template'
   description: ''
-  parent: system.admin_config_aaa
+  parent: system.admin_config_cybersource
   route_name: aaa_cybersource.manage_templates
   weight: 10
 entity.payment.settings:

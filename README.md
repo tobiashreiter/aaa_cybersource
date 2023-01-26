@@ -24,7 +24,7 @@ Ensure that the private filesystem is enabled (`/admin/config/media/file-system`
 Enable the `application/octet-stream` MIME type in the File type Document settings to enable proper upload (`/admin/structure/file-types/manage/document/edit`)[^1].
 
 ## Configuration
-The configuration base route is at `/admin/config/aaa`.
+The configuration base route is at `/admin/config/cybersource`.
 
 ### Cybersource Form Settings
 This form configures the global and per-form settings related to CyberSource and other various options.
