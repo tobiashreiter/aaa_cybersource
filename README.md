@@ -18,13 +18,18 @@ Otherwise you must edit this code manually in the vendor files and commit that c
 
 Enable the `aaa_cybersource` module.
 
+### Drupal Configuration
+Ensure that the private filesystem is enabled (`/admin/config/media/file-system`). The JWT Certificate can not be publicly accessible or else account security will be compromised.
+
+Enable the `application/octet-stream` MIME type in the File type Document settings to enable proper upload (`/admin/structure/file-types/manage/document/edit`)[^1].
+
 ## Configuration
 The configuration base route is at `/admin/config/aaa`.
 
 ### Cybersource Form Settings
 This form configures the global and per-form settings related to CyberSource and other various options.
 
-It is necessary to obtain a Merchant ID and a JWT Certificate[^1] from CyberSource.
+It is necessary to obtain a Merchant ID and a JWT Certificate[^2] from CyberSource.
 
 When you add new forms their individual options will appear at the bottom of the page.
 
@@ -36,4 +41,5 @@ All the necessary elements are already added to the form but most elements outsi
 ## Payment entity
 Webform submissions will store incoming data from the forms. However it's not a good permanent solution to storing payment data because submissions can be deleted when forms are removed and because form submissions exist as a record of what the form receieved. The Payment entity will exist to record and track the payment and transaction information. They will not be removed if forms are deleted at a future date.
 
-[^1]: Create a P12 Certificate for JSON Web Token Authentication https://developer.cybersource.com/docs/cybs/en-us/payouts/developer/all/rest/payouts/authentication/createCert.html
+[^1]: Upload file showing error Drupal\Component\Plugin\Exception\PluginNotFoundException The "entity:file:undefined" plugin does not exist https://www.drupal.org/project/drupal/issues/3104812
+[^2]: Create a P12 Certificate for JSON Web Token Authentication https://developer.cybersource.com/docs/cybs/en-us/payouts/developer/all/rest/payouts/authentication/createCert.html
