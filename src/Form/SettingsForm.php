@@ -230,7 +230,7 @@ class SettingsForm extends ConfigFormBase {
       }
     }
 
-    $global = $config->get('global');
+    $global = $config->get('global') ?? [];
     $devFile = $this->getJwtFile($form_state, $global, 'development');
     $prodFile = $this->getJwtFile($form_state, $global, 'production');
 
