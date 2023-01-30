@@ -12,20 +12,5 @@
     "minimum-stability": "stable",
     "require": {
         "cybersource/rest-client-php": "^0.0.36"
-    },
-    "require-dev": {
-        "cweagans/composer-patches": "^1.7"
-    },
-    "enable-patching": true,
-    "patches": {
-        "cybersource/rest-client-php": {
-            "Remove include autoload.php": "patches/autoload.patch",
-            "Remove logging from Key Generator": "patches/logging.patch"
-        }
-    },
-    "config": {
-        "allow-plugins": {
-            "cweagans/composer-patches": true
-        }
     }
 }
