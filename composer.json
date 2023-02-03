@@ -11,6 +11,12 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "cybersource/rest-client-php": "^0.0.36"
-    }
+        "cybersource/rest-client-php": "dev-no-apcu"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/interactiveknowledge/cybersource-rest-client-php.git"
+        }
+    ]
 }
