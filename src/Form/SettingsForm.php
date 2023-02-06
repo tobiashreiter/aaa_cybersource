@@ -138,7 +138,7 @@ class SettingsForm extends ConfigFormBase {
       '#type' => 'select',
       '#title' => $this->t('Authentication type'),
       '#options' => [
-        'HTTP_SIGNATURE' => $this->t('HTTP Signature'),
+        // 'HTTP_SIGNATURE' => $this->t('HTTP Signature'),
         'JWT' => $this->t('JWT Certificate'),
       ],
       '#default_value' => $config->get('global')['auth'] ?? '',
@@ -346,13 +346,13 @@ class SettingsForm extends ConfigFormBase {
     ];
 
     $form['global'][$environment][$environment . '_merchant_key'] = [
-      '#type' => 'textfield',
+      '#type' => 'hidden',
       '#title' => $this->t('Merchant Key'),
       '#default_value' => $config->get('global')[$environment]['merchant_key'] ?? '',
     ];
 
     $form['global'][$environment][$environment . '_merchant_secret'] = [
-      '#type' => 'textfield',
+      '#type' => 'hidden',
       '#title' => $this->t('Merchant Shared Secret'),
       '#default_value' => $config->get('global')[$environment]['merchant_secret'] ?? '',
     ];
