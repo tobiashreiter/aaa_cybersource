@@ -141,6 +141,8 @@ class Cybersource extends ControllerBase implements ContainerInjectionInterface 
    */
   public function getFlexToken(string $webform): JsonResponse {
     $settings = $this->configFactory->get('aaa_cybersource.settings');
+    $request = $this->requestStack->getCurrentRequest();
+    $host = 'https://' . $request->headers->get('host');
 
     if (empty($webform) === FALSE) {
       $webform_entity = $this->entityRepository->getActive('webform', $webform);
@@ -156,7 +158,7 @@ class Cybersource extends ControllerBase implements ContainerInjectionInterface 
     }
 
     $this->cybersourceClient->setEnvironment($environment);
-    $flexToken = $this->cybersourceClient->getFlexToken();
+    $flexToken = $this->cybersourceClient->getFlexToken($host);
 
     return new JsonResponse($flexToken);
   }
