@@ -56,6 +56,13 @@ class AaaWebformTemplatesReceiptController extends ControllerBase {
   protected $currentUser;
 
   /**
+   * Logger channel.
+   *
+   * @var LoggerChannelInterface
+   */
+  protected $logger;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
@@ -66,6 +73,8 @@ class AaaWebformTemplatesReceiptController extends ControllerBase {
     $instance->dateFormatter = $container->get('date.formatter');
     $instance->configFactory = $container->get('config.factory');
     $instance->currentUser = $container->get('current_user');
+    $instance->logger = $container->get('logger.factory')->get('aaa_cybersource');
+
     return $instance;
   }
 
@@ -101,6 +110,7 @@ class AaaWebformTemplatesReceiptController extends ControllerBase {
       }
 
       if (is_null($webform_submission)) {
+        $this->logger->debug('Cybersource Receipt Not Found: No webform found.');
         throw new NotFoundHttpException();
       }
 
@@ -113,20 +123,24 @@ class AaaWebformTemplatesReceiptController extends ControllerBase {
         $this->currentUser->isAnonymous() === TRUE
         && time() > $webform_submission_created + ($receipt_availability * 60 * 60 * 24)
       ) {
+        $this->logger->debug('Cybersource Receipt Not Found: receipt availability expired.');
         throw new NotFoundHttpException();
       }
       // Check expiry.
       if (time() > $webform_submission_created + ($receipt_availability * 60 * 60 * 24)) {
         if ($this->currentUser->isAnonymous() === TRUE) {
+          $this->logger->debug('Cybersource Receipt Not Found: receipt availability expired.');
           throw new NotFoundHttpException();
         }
         // If authenticated user has permissions then allow them to view.
         elseif ($this->currentUser->hasPermission('view aaa_cybersource receipts') === FALSE) {
+          $this->logger->debug('Cybersource Receipt Not Found: user lacks permission to view expired receipt.');
           throw new NotFoundHttpException();
         }
       }
     }
     else {
+      $this->logger->debug('Cybersource Receipt Not Found: no token found.');
       throw new NotFoundHttpException();
     }
 
