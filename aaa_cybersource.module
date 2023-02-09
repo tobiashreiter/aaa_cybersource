@@ -10,6 +10,7 @@ use Drupal\Core\Render\Element;
 use Drupal\aaa_cybersource\Entity\Payment;
 use Drupal\webform\WebformSubmissionInterface;
 use Drupal\webform\Entity\Webform;
+use Drupal\webform\Utility\WebformMailHelper;
 
 /**
  * Implements hook_theme().
@@ -89,6 +90,89 @@ function aaa_cybersource_webform_update($entity) {
 function aaa_cybersource_webform_submission_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
   $form['#attached']['library'][] = 'aaa_cybersource/flex';
   $form['#attached']['drupalSettings']['aaa_cybersource']['webform'] = $form['#webform_id'];
+}
+
+/**
+ * Implements hook_mail().
+ * 
+ * Copied from the Webform module, including using some of the utility functions.
+ */
+function aaa_cybersource_mail($key, &$message, $params) {
+  // Never send emails when using devel generate to create
+  // 1000's of submissions.
+  if (\Drupal::moduleHandler()->moduleExists('devel_generate')) {
+    /** @var \Drupal\devel_generate\DevelGeneratePluginManager $devel_generate */
+    $devel_generate = \Drupal::service('plugin.manager.develgenerate');
+    $definition = $devel_generate->getDefinition('webform_submission', FALSE);
+    if ($definition) {
+      $class = $definition['class'];
+      if ($class::isGeneratingSubmissions()) {
+        $message['send'] = FALSE;
+      }
+    }
+  }
+
+  // Set default parameters.
+  $params += [
+    'from_mail' => '',
+    'from_name' => '',
+    'cc_mail' => '',
+    'bcc_mail' => '',
+    'reply_to' => '',
+    'return_path' => '',
+    'sender_mail' => '',
+    'sender_name' => '',
+  ];
+
+  $message['subject'] = $params['subject'];
+  $message['body'][] = $params['body'];
+
+  // Set the header 'From'.
+  // Using the 'from_mail' so that the webform's email from value is used
+  // instead of site's email address.
+  // @see: \Drupal\Core\Mail\MailManager::mail.
+  if (!empty($params['from_mail'])) {
+    // 'From name' is only used when the 'From mail' contains a single
+    // email address.
+    $from = (!empty($params['from_name']) && strpos($params['from_mail'], ',') === FALSE)
+      ? WebformMailHelper::formatAddress($params['from_mail'], $params['from_name'])
+      : $params['from_mail'];
+    $message['from'] = $message['headers']['From'] = $from;
+  }
+
+  // Set header 'Cc'.
+  if (!empty($params['cc_mail'])) {
+    $message['headers']['Cc'] = $params['cc_mail'];
+  }
+
+  // Set header 'Bcc'.
+  if (!empty($params['bcc_mail'])) {
+    $message['headers']['Bcc'] = $params['bcc_mail'];
+  }
+
+  // Set header 'Reply-to'.
+  $reply_to = $params['reply_to'] ?: '';
+  if (empty($reply_to) && !empty($params['from_mail'])) {
+    $reply_to = $message['from'];
+  }
+  if ($reply_to) {
+    $message['reply-to'] = $message['headers']['Reply-to'] = $reply_to;
+  }
+
+  // Set header 'Return-Path' which only supports a single email address and the
+  // 'from_mail' may contain multiple comma delimited email addresses.
+  $return_path = $params['return_path'] ?: $params['from_mail'] ?: '';
+  if ($return_path) {
+    $return_path = explode(',', $return_path);
+    $message['headers']['Sender'] = $message['headers']['Return-Path'] = $return_path[0];
+  }
+
+  // Set header 'Sender'.
+  $sender_mail = $params['sender_mail'] ?: '';
+  $sender_name = $params['sender_name'] ?: $params['from_name'] ?: '';
+  if ($sender_mail) {
+    $message['headers']['Sender'] = WebformMailHelper::formatAddress($sender_mail, $sender_name);
+  }
 }
 
 /**
