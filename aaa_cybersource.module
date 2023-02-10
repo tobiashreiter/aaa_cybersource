@@ -38,6 +38,8 @@ function template_preprocess_payment(array &$variables) {
   foreach (Element::children($variables['elements']) as $key) {
     $variables['content'][$key] = $variables['elements'][$key];
   }
+
+  $variables['payment'] = $variables['elements']['#payment'];
 }
 
 /**

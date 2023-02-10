@@ -5,7 +5,7 @@
  *
  * This template is used when viewing a registered payment's page,
  * e.g., /admin/content/aaa/payment)/123. 123 being the payment's ID.
- *
+*
  * Available variables:
  * - content: A list of content items. Use 'content' to print all content, or
  *   print a subset such as 'content.title'.
@@ -18,4 +18,11 @@
   {% if content %}
     {{- content -}}
   {% endif %}
+
+  <div class="field field--label-above">
+    <div class="field__label">Receipt</div>
+    <div class="field__item">
+      <a href="{{ path('aaa_cybersource.payment.receipt', {'payment': payment.id()}) }}">Receipt</a>
+    </div>
+  </div>
 </article>

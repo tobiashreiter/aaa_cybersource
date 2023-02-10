@@ -2,6 +2,7 @@
 
 namespace Drupal\aaa_cybersource\Controller;
 
+use Drupal\aaa_cybersource\Entity\Payment;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\webform\WebformInterface;
 use Drupal\webform\WebformSubmissionInterface;
@@ -91,7 +92,7 @@ class AaaWebformTemplatesReceiptController extends ControllerBase {
    * @return array
    *   A render array representing a webform confirmation page
    */
-  public function receipt(Request $request, WebformInterface $webform = NULL, WebformSubmissionInterface $webform_submission = NULL) {
+  public function webformReceipt(Request $request, WebformInterface $webform = NULL, WebformSubmissionInterface $webform_submission = NULL) {
     /** @var \Drupal\Core\Entity\EntityInterface $source_entity */
     if (!$webform) {
       [$webform, $source_entity] = $this->requestHandler->getWebformEntities();
@@ -147,6 +148,14 @@ class AaaWebformTemplatesReceiptController extends ControllerBase {
     // Submission Data and Payment entity.
     $data = $webform_submission->getData();
     $payment = $this->entityRepository->getActive('payment', $data['payment_entity']);
+    return $this->buildReceiptElements($payment);
+  }
+
+  public function paymentReceipt(Payment $payment = NULL, Request $request) {
+    return $this->buildReceiptElements($payment);
+  }
+
+  private function buildReceiptElements(Payment $payment) {
     $payment_id = $payment->get('payment_id')->value;
     $transaction = $this->cybersourceClient->getTransaction($payment_id);
     $billTo = $transaction[0]->getOrderInformation()->getBillTo();
