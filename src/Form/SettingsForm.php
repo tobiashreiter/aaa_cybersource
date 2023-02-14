@@ -77,7 +77,7 @@ class SettingsForm extends ConfigFormBase {
         'link' => [
           '#title' => $this->t('Edit Form'),
           '#type' => 'link',
-          '#url' => URL::fromRoute('entity.webform.edit_form', ['webform' => 'donation']),
+          '#url' => URL::fromRoute('entity.webform.edit_form', ['webform' => $webform_id]),
         ],
         'title' => $this->t(':title', [':title' => $webform->label()]),
         'webform' => TRUE,
