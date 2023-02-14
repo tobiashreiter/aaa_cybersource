@@ -9,6 +9,8 @@ use \Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\aaa_cybersource\Entity\Payment;
 use Drupal\webform\WebformSubmissionInterface;
+use Drupal\webform\Entity\Webform;
+use Drupal\webform\Utility\WebformMailHelper;
 
 /**
  * Implements hook_theme().
@@ -36,6 +38,8 @@ function template_preprocess_payment(array &$variables) {
   foreach (Element::children($variables['elements']) as $key) {
     $variables['content'][$key] = $variables['elements'][$key];
   }
+
+  $variables['payment'] = $variables['elements']['#payment'];
 }
 
 /**
@@ -61,45 +65,24 @@ function aaa_cybersource_theme_suggestions_webform_confirmation(array $variables
 }
 
 /**
+ * Implements hook_entity_insert().
+ *
+ * Copy the Webform alias updater and add a '/receipt' route.
+ */
+function aaa_cybersource_webform_insert($entity) {
+  if ($entity->get('category') === 'Cybersource') {
+    _add_receipt_alias($entity);
+  }
+}
+
+/**
  * Implements hook_entity_update().
  *
  * Copy the Webform alias updater and add a '/receipt' route.
  */
 function aaa_cybersource_webform_update($entity) {
   if ($entity->get('category') === 'Cybersource') {
-    $page_submit_path = $entity->getSetting('page_submit_path');
-    $default_page_base_path = \Drupal::config('webform.settings')->get('settings.default_page_base_path');
-
-    if (empty($page_submit_path) && empty($default_page_base_path)) {
-      return;
-    }
-
-    $path_base_alias = ($page_submit_path ?: $default_page_base_path . '/' . str_replace('_', '-', $entity->id()));
-    $path_suffix = '/receipt';
-    $path_source = '/webform/' . $entity->id() . $path_suffix;
-    $path_alias = $path_base_alias . $path_suffix;
-    $langcode = 'en';
-    // $this->updatePath($path_source, $path_alias, 'en');
-    $path_alias_storage = \Drupal::entityTypeManager()->getStorage('path_alias');
-
-    // Check if the path alias is already setup.
-    $path_aliases = $path_alias_storage->loadByProperties(['path' => $path_source, 'langcode' => $langcode]);
-    if ($path_aliases) {
-      /** @var \Drupal\path_alias\PathAliasInterface $path_alias */
-      $path_alias_current = reset($path_aliases);
-      if ($path_alias_current->getAlias() === $path_alias) {
-        return;
-      }
-    }
-    else {
-      $path_alias_current = $path_alias_storage->create([
-        'path' => $path_source,
-        'langcode' => $langcode,
-      ]);
-    }
-
-    $path_alias_current->setAlias($path_alias);
-    $path_alias_current->save();
+    _add_receipt_alias($entity);
   }
 }
 
@@ -109,4 +92,128 @@ function aaa_cybersource_webform_update($entity) {
 function aaa_cybersource_webform_submission_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
   $form['#attached']['library'][] = 'aaa_cybersource/flex';
   $form['#attached']['drupalSettings']['aaa_cybersource']['webform'] = $form['#webform_id'];
+}
+
+/**
+ * Implements hook_mail().
+ * 
+ * Copied from the Webform module, including using some of the utility functions.
+ */
+function aaa_cybersource_mail($key, &$message, $params) {
+  // Never send emails when using devel generate to create
+  // 1000's of submissions.
+  if (\Drupal::moduleHandler()->moduleExists('devel_generate')) {
+    /** @var \Drupal\devel_generate\DevelGeneratePluginManager $devel_generate */
+    $devel_generate = \Drupal::service('plugin.manager.develgenerate');
+    $definition = $devel_generate->getDefinition('webform_submission', FALSE);
+    if ($definition) {
+      $class = $definition['class'];
+      if ($class::isGeneratingSubmissions()) {
+        $message['send'] = FALSE;
+      }
+    }
+  }
+
+  // Set default parameters.
+  $params += [
+    'from_mail' => '',
+    'from_name' => '',
+    'cc_mail' => '',
+    'bcc_mail' => '',
+    'reply_to' => '',
+    'return_path' => '',
+    'sender_mail' => '',
+    'sender_name' => '',
+  ];
+
+  $message['subject'] = $params['subject'];
+  $message['body'][] = $params['body'];
+
+  // Set the header 'From'.
+  // Using the 'from_mail' so that the webform's email from value is used
+  // instead of site's email address.
+  // @see: \Drupal\Core\Mail\MailManager::mail.
+  if (!empty($params['from_mail'])) {
+    // 'From name' is only used when the 'From mail' contains a single
+    // email address.
+    $from = (!empty($params['from_name']) && strpos($params['from_mail'], ',') === FALSE)
+      ? WebformMailHelper::formatAddress($params['from_mail'], $params['from_name'])
+      : $params['from_mail'];
+    $message['from'] = $message['headers']['From'] = $from;
+  }
+
+  // Set header 'Cc'.
+  if (!empty($params['cc_mail'])) {
+    $message['headers']['Cc'] = $params['cc_mail'];
+  }
+
+  // Set header 'Bcc'.
+  if (!empty($params['bcc_mail'])) {
+    $message['headers']['Bcc'] = $params['bcc_mail'];
+  }
+
+  // Set header 'Reply-to'.
+  $reply_to = $params['reply_to'] ?: '';
+  if (empty($reply_to) && !empty($params['from_mail'])) {
+    $reply_to = $message['from'];
+  }
+  if ($reply_to) {
+    $message['reply-to'] = $message['headers']['Reply-to'] = $reply_to;
+  }
+
+  // Set header 'Return-Path' which only supports a single email address and the
+  // 'from_mail' may contain multiple comma delimited email addresses.
+  $return_path = $params['return_path'] ?: $params['from_mail'] ?: '';
+  if ($return_path) {
+    $return_path = explode(',', $return_path);
+    $message['headers']['Sender'] = $message['headers']['Return-Path'] = $return_path[0];
+  }
+
+  // Set header 'Sender'.
+  $sender_mail = $params['sender_mail'] ?: '';
+  $sender_name = $params['sender_name'] ?: $params['from_name'] ?: '';
+  if ($sender_mail) {
+    $message['headers']['Sender'] = WebformMailHelper::formatAddress($sender_mail, $sender_name);
+  }
+}
+
+/**
+ * Adds an alias URL for the receipt page of cybersource forms.
+ *
+ * @param Webform $entity
+ */
+function _add_receipt_alias(Webform $entity) {
+  $page_submit_path = $entity->getSetting('page_submit_path');
+  $default_page_base_path = \Drupal::config('webform.settings')->get('settings.default_page_base_path');
+
+  if (empty($page_submit_path) && empty($default_page_base_path)) {
+    return;
+  }
+
+  $path_base_alias = ($page_submit_path ?: $default_page_base_path . '/' . str_replace('_', '-', $entity->id()));
+  $path_suffix = '/receipt';
+  $path_source = '/webform/' . $entity->id() . $path_suffix;
+  $path_alias = $path_base_alias . $path_suffix;
+  $langcode = 'en';
+  // $this->updatePath($path_source, $path_alias, 'en');
+  $path_alias_storage = \Drupal::entityTypeManager()->getStorage('path_alias');
+
+  // Check if the path alias is already setup.
+  $path_aliases = $path_alias_storage->loadByProperties(['path' => $path_source, 'langcode' => $langcode]);
+  if ($path_aliases) {
+    /** @var \Drupal\path_alias\PathAliasInterface $path_alias */
+    $path_alias_current = reset($path_aliases);
+    if ($path_alias_current->getAlias() === $path_alias) {
+      return;
+    }
+  }
+  else {
+    $path_alias_current = $path_alias_storage->create([
+      'path' => $path_source,
+      'langcode' => $langcode,
+    ]);
+  }
+
+  $path_alias_current->setAlias($path_alias);
+  $path_alias_current->save();
 }

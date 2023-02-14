@@ -244,6 +244,16 @@ class CybersourceClient {
     }
   }
 
+  /**
+   * Returns the client ID.
+   *
+   * Client ID is simply the version number of the package extracted from the
+   * composer installed manifest. If the manifest isn't where the package
+   * assumes it will be then this returns an empty string.
+   *
+   * @return string
+   *   client id.
+   */
   public function getClientId() {
     return $this->apiClient->getClientId();
   }
@@ -251,18 +261,28 @@ class CybersourceClient {
   /**
    * Get a flex token key.
    *
+   * @param string $host
+   *   Host URL.
+   *
    * @return string
    *   The one-time use flex token.
    */
-  public function getFlexToken() {
+  public function getFlexToken(string $host) {
     if ($this->isReady() === FALSE) {
       return '';
     }
 
     $instance = new KeyGenerationApi($this->apiClient);
-    $request = $this->requestStack->getCurrentRequest();
-    $targetOrigin = $request->getSchemeAndHttpHost();
 
+    if (is_null($host) === TRUE || empty($host)) {
+      $request = $this->requestStack->getCurrentRequest();
+      $targetOrigin = $request->getSchemeAndHttpHost();
+    }
+    else {
+      $targetOrigin = $host;
+    }
+
+    // CyberSource can only use unsecured HTTP on localhost development.
     if (strpos($targetOrigin, 'localhost')) {
       $targetOrigin = 'http://localhost';
     }

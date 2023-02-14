@@ -13,6 +13,7 @@ use Drupal\aaa_cybersource\CybersourceClient;
 use GuzzleHttp\ClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Returns responses for Cybersource routes.
@@ -60,6 +61,7 @@ class Cybersource extends ControllerBase implements ContainerInjectionInterface 
   protected $apiClient;
   protected $cybersourceClient;
   protected $entityRepository;
+  protected $requestStack;
 
   /**
    * Cybersource controller constructor.
@@ -75,13 +77,14 @@ class Cybersource extends ControllerBase implements ContainerInjectionInterface 
    * @param CybersourceClient $cybersource_client
    *   The Cybersource Client service.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ClientInterface $http_client, LoggerChannelFactoryInterface $logger, FileSystem $file_system, CybersourceClient $cybersource_client, EntityRepository $entity_repository) {
+  public function __construct(ConfigFactoryInterface $config_factory, ClientInterface $http_client, LoggerChannelFactoryInterface $logger, FileSystem $file_system, CybersourceClient $cybersource_client, EntityRepository $entity_repository, RequestStack $request_stack) {
     $this->configFactory = $config_factory;
     $this->httpClient = $http_client;
     $this->logger = $logger;
     $this->fileSystem = $file_system;
     $this->cybersourceClient = $cybersource_client;
     $this->entityRepository = $entity_repository;
+    $this->requestStack = $request_stack;
   }
 
   /**
@@ -96,6 +99,7 @@ class Cybersource extends ControllerBase implements ContainerInjectionInterface 
       $container->get('file_system'),
       $container->get('aaa_cybersource.cybersource_client'),
       $container->get('entity.repository'),
+      $container->get('request_stack'),
     );
   }
 
@@ -112,10 +116,18 @@ class Cybersource extends ControllerBase implements ContainerInjectionInterface 
       '#value' => 'Request Information',
     ];
 
-    $build['body'] = [
+    $request = $this->requestStack->getCurrentRequest();
+    $targetOrigin = $request->getSchemeAndHttpHost();
+    $build['origin_title'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'h3',
+      '#value' => 'Site Origin',
+    ];
+
+    $build['origin'] = [
       '#type' => 'html_tag',
       '#tag' => 'p',
-      '#value' => $this->cybersourceClient->getClientId(),
+      '#value' => $targetOrigin,
     ];
 
     return $build;
@@ -129,6 +141,8 @@ class Cybersource extends ControllerBase implements ContainerInjectionInterface 
    */
   public function getFlexToken(string $webform): JsonResponse {
     $settings = $this->configFactory->get('aaa_cybersource.settings');
+    $request = $this->requestStack->getCurrentRequest();
+    $host = 'https://' . $request->headers->get('host');
 
     if (empty($webform) === FALSE) {
       $webform_entity = $this->entityRepository->getActive('webform', $webform);
@@ -144,7 +158,7 @@ class Cybersource extends ControllerBase implements ContainerInjectionInterface 
     }
 
     $this->cybersourceClient->setEnvironment($environment);
-    $flexToken = $this->cybersourceClient->getFlexToken();
+    $flexToken = $this->cybersourceClient->getFlexToken($host);
 
     return new JsonResponse($flexToken);
   }

@@ -69,6 +69,27 @@ class DonationWebformHandler extends WebformHandlerBase {
   protected $urlGenerator;
 
   /**
+   * A mail manager for sending email.
+   *
+   * @var \Drupal\Core\Mail\MailManagerInterface
+   */
+  protected $mailManager;
+
+  /**
+   * The language manager.
+   *
+   * @var \Drupal\Core\Language\LanguageManagerInterface
+   */
+  protected $languageManager;
+
+  /**
+   * Date Formatter utility.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatter
+   */
+  protected $dateFormatter;
+
+  /**
    * Create this container handler.
    *
    * @param ContainerInterface $container
@@ -89,6 +110,9 @@ class DonationWebformHandler extends WebformHandlerBase {
     $instance->cybersourceClient = $container->get('aaa_cybersource.cybersource_client');
     $instance->messenger = $container->get('messenger');
     $instance->urlGenerator = $container->get('url_generator');
+    $instance->languageManager = $container->get('language_manager');
+    $instance->mailManager = $container->get('plugin.manager.mail');
+    $instance->dateFormatter = $container->get('date.formatter');
 
     return $instance;
   }
@@ -97,7 +121,9 @@ class DonationWebformHandler extends WebformHandlerBase {
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return [];
+    return [
+      'email_receipt' => FALSE,
+    ];
   }
 
   /**
@@ -317,8 +343,75 @@ class DonationWebformHandler extends WebformHandlerBase {
   /**
    * {@inheritdoc}
    */
+  public function postSave(WebformSubmissionInterface $webform_submission, $update = TRUE) {
+    if ($this->configuration['email_receipt'] === TRUE) {
+      // Cybersource needs a few seconds before the receipt can be accessed.
+      sleep(5);
+      $key = $this->getWebform()->id() . '_' . $this->getHandlerId();
+      $current_langcode = $this->languageManager->getCurrentLanguage()->getId();
+      $site_mail = $this->replaceTokens('[site:mail]', NULL, [], []);
+      $site_name = $this->replaceTokens('[site:name]', NULL, [], []);
+      $to = $this->replaceTokens('[webform_submission:values:email]', $webform_submission, [], []);
+      $body = $this->buildReceiptBody($webform_submission);
+      $result = $this->mailManager->mail(
+        'aaa_cybersource',
+        $key,
+        $to,
+        $current_langcode,
+        [
+          'from_mail' => $site_mail,
+          'from_name' => $site_name,
+          'subject' => 'Receipt',
+          'body' => $body,
+        ],
+        $site_mail,
+      );
+
+      if ($result['send'] === TRUE) {
+        $context = [
+          '@form' => $this->getWebform()->label(),
+          '@title' => $this->label(),
+          'link' => $this->getWebform()->toLink($this->t('Edit'), 'handlers')->toString(),
+        ];
+        $this->loggerFactory->notice('@form webform sent @title email.', $context);
+
+      }
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $form['email'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Email'),
+    ];
+    $form['email']['email_receipt'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Send email receipt'),
+      '#description' => $this->t('Delivers a copy of the receipt to the email.'),
+      '#return_value' => TRUE,
+      '#default_value' => $this->configuration['email_receipt'],
+    ];
+
     return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+    parent::submitConfigurationForm($form, $form_state);
+
+    $values = $form_state->getValues();
+
+    $this->configuration['email_receipt'] = $values['email']['email_receipt'];
+
+    if (is_null($form_state->getValue('conditions'))) {
+      $values = $form_state->setValue('conditions', []);
+    }
+
   }
 
   /**
@@ -396,6 +489,100 @@ class DonationWebformHandler extends WebformHandlerBase {
     else {
       return $prefix;
     }
+  }
+
+  /**
+   * Build the email body for the receipt.
+   *
+   * @param WebformSubmissionInterface $webform_submission
+   * @return string
+   */
+  private function buildReceiptBody($webform_submission) {
+    // Submission Data and Payment entity.
+    $data = $webform_submission->getData();
+    $payment = $this->entityRepository->getActive('payment', $data['payment_entity']);
+    $payment_id = $payment->get('payment_id')->value;
+    $transaction = $this->cybersourceClient->getTransaction($payment_id);
+    $billTo = $transaction[0]->getOrderInformation()->getBillTo();
+    $paymentInformation = $transaction[0]->getPaymentInformation();
+    $card = $paymentInformation->getCard();
+    $amountDetails = $transaction[0]->getOrderInformation()->getAmountDetails();
+    $datetime = $transaction[0]->getSubmitTimeUTC();
+    $amount = strpos($amountDetails->getTotalAmount(), '.') > 0 ? $amountDetails->getTotalAmount() : $amountDetails->getTotalAmount() . '.00';
+
+    $body = '';
+
+    $body .= "
+      RECEIPT
+
+      Date: {$this->dateFormatter->format(strtotime($datetime), 'long')}
+      Order Number: {$payment->get('code')->value}
+
+      ------------------------------------
+
+      BILLING INFORMATION
+
+      {$billTo->getFirstName()} {$billTo->getLastName()}";
+
+    if (!empty($billTo->getCompany())) {
+      $body .= "
+      {$billTo->getCompany()}";
+    }
+
+    $body .= "
+      {$billTo->getAddress1()}";
+
+    if (!empty($billTo->getAddress2())) {
+      $body .= "
+      {$billTo->getAddress2()}";
+    }
+
+    $body .= "
+      {$billTo->getLocality()}
+      {$billTo->getAdministrativeArea()}
+      {$billTo->getPostalCode()}
+      {$billTo->getEmail()}
+      {$billTo->getPhoneNumber()}
+
+      PAYMENT DETAILS
+      Card Type {$this->cardTypeNumberToString($card->getType())}
+      Card Number xxxxxxxxxxxxx{$card->getSuffix()}
+      Expiration {$card->getExpirationMonth()}-{$card->getExpirationYear()}
+      
+      TOTAL AMOUNT
+      $ {$amount}
+      ";
+
+    return $body;
+  }
+
+  private function cardTypeNumberToString($code) {
+    $codes = [
+      '001' => 'Visa',
+      '002' => 'Mastercard',
+      '003' => 'American Express',
+      '004' => 'Discover',
+      '005' => 'Diners Club',
+      '006' => 'Carte Blanche',
+      '007' => 'JCB',
+      '014' => 'Enroute',
+      '021' => 'JAL',
+      '024' => 'Maestro',
+      '031' => 'Delta',
+      '033' => 'Visa Electron',
+      '034' => 'Dankort',
+      '036' => 'Cartes Bancaires',
+      '037' => 'Carta Si',
+      '039' => 'Encoded account number',
+      '040' => 'UATP',
+      '042' => 'Maestro',
+      '050' => 'Hipercard',
+      '051' => 'Aura',
+      '054' => 'Elo',
+      '062' => 'China UnionPay',
+    ];
+
+    return $codes[$code];
   }
 
 }

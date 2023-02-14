@@ -5,18 +5,26 @@ Integrates [Drupal](https://www.drupal.org/home), [Webform](https://www.drupal.o
 This module extends the Drupal Webform module which must be installed.
 
 ## Installation
-Require the module using composer which will call it from the github repository. It is also necessary to apply patches to the CyberSource PHP Rest Client so that it may be called properly from Drupal without error. In your `composer.json` file and assuming that `cweagans/composer-patches` is installed and enabled add the following:
-```
-"cybersource/rest-client-php": {
-    "Remove include autoload.php": "htdocs/modules/custom/aaa_cybersource/patches/autoload.patch",
-    "Remove logging from Key Generator": "htdocs/modules/custom/aaa_cybersource/patches/logging.patch"
-}
-```
-Update the relative module paths to point to the patch files, not all Drupal installations are identical.
-Run `composer install` to apply the patches.
-Otherwise you must edit this code manually in the vendor files and commit that change which may be difficult in a composer-managed site.
+Add the custom github repositories to the site `composer.json` file to the repositories object so that composer knows where to find the custom Drupal modules.
 
-Enable the `aaa_cybersource` module.
+```
+"repositories": [
+    ...
+    {
+        "type": "vcs",
+        "url": "https://github.com/interactiveknowledge/aaa_cybersource.git"
+    },
+    {
+        "type": "vcs",
+        "url": "https://github.com/interactiveknowledge/cybersource-rest-client-php.git"
+    }
+    ...
+]
+```
+
+Require this module using composer `composer require "smithsonian/aaa_cybersource": "dev-main"` to install.
+
+Enable the `aaa_cybersource` module on Drupal.
 
 ### Drupal Configuration
 Ensure that the private filesystem is enabled (`/admin/config/media/file-system`). The JWT Certificate can not be publicly accessible or else account security will be compromised.
@@ -34,7 +42,7 @@ It is necessary to obtain a Merchant ID and a JWT Certificate[^2] from CyberSour
 When you add new forms their individual options will appear at the bottom of the page.
 
 ## Creating a new form
-Create a new form from the Donation Webform Template installed by this module. Go to all Webform Templates (`admin/structure/webform/templates`) and select the Donation form that also has Category Cybersource. You will be presented with a form for some additional options and then to Save to create the new form. **It's necessary that Category remain Cybersource**.
+Create a new form from the Donation Webform Template installed by this module. Go to all Webform Templates (`admin/structure/webform/templates`) and select the Donation form that also has Category Cybersource. You will be presented with a form for some additional options and then to Save to create the new form. **It's necessary that the webform Category is Cybersource**.
 
 All the necessary elements are already added to the form but most elements outside the "Payment Details" group can be changed and edited. The only other necessary element is an "amount" element which should return an integer or decimal amount of currency.
 
