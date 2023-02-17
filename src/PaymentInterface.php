@@ -52,4 +52,11 @@ interface PaymentInterface extends ContentEntityInterface, EntityChangedInterfac
    */
   public function isRecurring(): bool;
 
+  /**
+   * Is this an active recurring transaction parent.
+   *
+   * @return boolean
+   */
+  public function isActiveRecurring(): bool;
+
 }

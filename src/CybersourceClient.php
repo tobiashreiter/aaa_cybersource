@@ -2,35 +2,42 @@
 
 namespace Drupal\aaa_cybersource;
 
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\EntityRepository;
-use Drupal\Core\File\FileSystemInterface;
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\Core\Messenger\MessengerInterface;
-
-use Symfony\Component\HttpFoundation\RequestStack;
-
-use CyberSource\Configuration;
 use CyberSource\ApiClient;
 use CyberSource\ApiException;
-use CyberSource\Authentication\Core\MerchantConfiguration;
-use CyberSource\Logging\LogConfiguration;
-use CyberSource\Api\InstrumentIdentifierApi;
-use CyberSource\Api\KeyGenerationApi;
-use CyberSource\Api\PaymentInstrumentApi;
+use CyberSource\Configuration;
 use CyberSource\Api\PaymentsApi;
+use CyberSource\Api\KeyGenerationApi;
+
+use Drupal\Core\Entity\EntityRepository;
+
+use CyberSource\Api\PaymentInstrumentApi;
+use CyberSource\Logging\LogConfiguration;
+use Drupal\Core\File\FileSystemInterface;
 use CyberSource\Api\TransactionDetailsApi;
 use CyberSource\Model\CreatePaymentRequest;
-use CyberSource\Model\PostInstrumentIdentifierRequest;
-use CyberSource\Model\Ptsv2paymentsClientReferenceInformation;
+use CyberSource\Api\InstrumentIdentifierApi;
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use CyberSource\Model\Ptsv2paymentsOrderInformation;
-use CyberSource\Model\Ptsv2paymentsOrderInformationAmountDetails;
-use CyberSource\Model\Ptsv2paymentsOrderInformationBillTo;
 use CyberSource\Model\Ptsv2paymentsTokenInformation;
-use CyberSource\Model\Tmsv2customersEmbeddedDefaultPaymentInstrumentBillTo;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use CyberSource\Model\PostInstrumentIdentifierRequest;
+use CyberSource\Model\Ptsv2paymentsPaymentInformation;
+use CyberSource\Model\Ptsv2paymentsProcessingInformation;
+use CyberSource\Authentication\Core\MerchantConfiguration;
+use CyberSource\Model\Ptsv2paymentsOrderInformationBillTo;
+use CyberSource\Model\Ptsv2paymentsOrderInformationShipTo;
+use CyberSource\Model\Ptsv2paymentsClientReferenceInformation;
+use CyberSource\Model\Ptsv2paymentsPaymentInformationCustomer;
+use CyberSource\Model\Ptsv2paymentsOrderInformationAmountDetails;
 use CyberSource\Model\Tmsv2customersEmbeddedDefaultPaymentInstrumentCard;
-use CyberSource\Model\Tmsv2customersEmbeddedDefaultPaymentInstrumentEmbeddedInstrumentIdentifierCard;
+use CyberSource\Model\Tmsv2customersEmbeddedDefaultPaymentInstrumentBillTo;
+use CyberSource\Model\Ptsv2paymentsProcessingInformationAuthorizationOptions;
+use CyberSource\Model\Ptsv2paymentsProcessingInformationAuthorizationOptionsInitiator;
 use CyberSource\Model\Tmsv2customersEmbeddedDefaultPaymentInstrumentInstrumentIdentifier;
+use CyberSource\Model\Tmsv2customersEmbeddedDefaultPaymentInstrumentEmbeddedInstrumentIdentifierCard;
+use CyberSource\Model\Ptsv2paymentsProcessingInformationAuthorizationOptionsInitiatorMerchantInitiatedTransaction;
 
 /**
  * CybersourceClient service creates Cybersource objects and makes requests.
@@ -71,88 +78,77 @@ class CybersourceClient {
   /**
    * @param mixed $auth
    */
-  public function setAuth($auth): void
-  {
+  public function setAuth($auth): void {
     $this->auth = $auth;
   }
 
   /**
    * @param string $requestHost
    */
-  public function setRequestHost(string $requestHost): void
-  {
+  public function setRequestHost(string $requestHost): void {
     $this->requestHost = $requestHost;
   }
 
   /**
    * @param mixed $merchantId
    */
-  public function setMerchantId(mixed $merchantId): void
-  {
+  public function setMerchantId(mixed $merchantId): void {
     $this->merchantId = $merchantId;
   }
 
   /**
    * @param mixed $merchantKey
    */
-  public function setMerchantKey(mixed $merchantKey): void
-  {
+  public function setMerchantKey(mixed $merchantKey): void {
     $this->merchantKey = $merchantKey;
   }
 
   /**
    * @param mixed $merchantSecretKey
    */
-  public function setMerchantSecretKey(mixed $merchantSecretKey): void
-  {
+  public function setMerchantSecretKey(mixed $merchantSecretKey): void {
     $this->merchantSecretKey = $merchantSecretKey;
   }
 
   /**
    * @param mixed $certificateDirectory
    */
-  public function setCertificateDirectory($certificateDirectory): void
-  {
+  public function setCertificateDirectory($certificateDirectory): void {
     $this->certificateDirectory = $certificateDirectory;
   }
 
   /**
    * @param mixed $certificateFile
    */
-  public function setCertificateFile($certificateFile): void
-  {
+  public function setCertificateFile($certificateFile): void {
     $this->certificateFile = $certificateFile;
   }
 
   /**
    * @param mixed $payload
    */
-  public function setPayload($payload): void
-  {
+  public function setPayload($payload): void {
     $this->payload = $payload;
   }
 
   /**
    * @param mixed $merchantConfiguration
    */
-  public function setMerchantConfiguration($merchantConfiguration): void
-  {
+  public function setMerchantConfiguration($merchantConfiguration): void {
     $this->merchantConfiguration = $merchantConfiguration;
   }
 
   /**
    * @param mixed $settings
    */
-  public function setSettings($settings): void
-  {
+  public function setSettings($settings): void {
     $this->settings = $settings;
   }
 
   /**
    * @param mixed $apiClient
    */
-  public function setApiClient($apiClient): void
-  {
+  public function setApiClient($apiClient): void {
     $this->apiClient = $apiClient;
   }
 
@@ -342,6 +338,7 @@ class CybersourceClient {
    * Create payment instrument.
    *
    * @param array $data
+   *   The arrayed data.
    *
    * @return array
    */
@@ -391,6 +388,7 @@ class CybersourceClient {
    * Create client reference information object.
    *
    * @param array $data
+   *   The arrayed data.
    *
    * @return Ptsv2paymentsClientReferenceInformation
    */
@@ -404,6 +402,7 @@ class CybersourceClient {
    * Create order amount details.
    *
    * @param array $data
+   *   The arrayed data.
    *
    * @return Ptsv2paymentsOrderInformationAmountDetails
    */
@@ -417,6 +416,7 @@ class CybersourceClient {
    * Create billing information object.
    *
    * @param array $data
+   *   The arrayed data.
    *
    * @return Ptsv2paymentsOrderInformationBillTo
    */
@@ -427,37 +427,117 @@ class CybersourceClient {
   }
 
   /**
+   * Create shipping info object.
+   *
+   * @param array $data
+   *   The arrayed data.
+   *
+   * @return Ptsv2paymentsOrderInformationShipTo
+   */
+  public function createShippingInformation(array $data) {
+    $shippingInfo = new Ptsv2paymentsOrderInformationShipTo($data);
+
+    return $shippingInfo;
+  }
+
+  /**
    * Create order information object.
    *
-   * @param Ptsv2paymentsOrderInformationAmountDetails $amountDetails
-   * @param Ptsv2paymentsOrderInformationBillTo        $billTo
+   * @param array $data
+   *   The arrayed data.
    *
    * @return Ptsv2paymentsOrderInformation
    */
-  public function createOrderInformation(Ptsv2paymentsOrderInformationAmountDetails $amountDetails, Ptsv2paymentsOrderInformationBillTo $billTo) {
-    $orderInformation = new Ptsv2paymentsOrderInformation([
-      'amountDetails' => $amountDetails,
-      'billTo' => $billTo,
-    ]);
+  public function createOrderInformation(array $data) {
+      $orderInformation = new Ptsv2paymentsOrderInformation($data);
 
     return $orderInformation;
   }
 
   /**
+   * Necessary for a MIT.
+   *
+   * @param string $previousId
+   *   Set this value if this is a subsequent recurring payment.
+   *
+   * @return Ptsv2paymentsProcessingInformationAuthorizationOptionsInitiator
+   */
+  public function createProcessingOptions($previousId = '') {
+    // First MIT recurring payment.
+    if (empty($previousId) === TRUE) {
+      $subsequentPayment = FALSE;
+      $initiator = new Ptsv2paymentsProcessingInformationAuthorizationOptionsInitiator([
+        'credentialStoredOnFile' => TRUE,
+      ]);
+    }
+    // Subsequent MIT payment.
+    else {
+      $subsequentPayment = TRUE;
+      $mitTransaction = new Ptsv2paymentsProcessingInformationAuthorizationOptionsInitiatorMerchantInitiatedTransaction([
+        'previousTransactionID' => $previousId,
+      ]);
+
+      $initiator = new Ptsv2paymentsProcessingInformationAuthorizationOptionsInitiator([
+        'merchantInitiatedTransaction' => $mitTransaction,
+        'storedCredentialUsed' => TRUE,
+        'type' => 'merchant',
+      ]);
+    }
+
+    $authorizationOptions = new Ptsv2paymentsProcessingInformationAuthorizationOptions([
+      'initiator' => $initiator,
+    ]);
+
+    $processingInfoData = [
+      'authorizationOptions' => $authorizationOptions,
+    ];
+
+    if ($subsequentPayment === TRUE) {
+      $processingInfoData['commerceIndicator'] = 'recurring';
+    }
+    else {
+      $processingInfoData['actionList'] = ['TOKEN_CREATE'];
+      $processingInfoData['actionTokenTypes'] = [
+        'customer',
+        'paymentInstrument',
+        'shippingAddress',
+      ];
+      $processingInfoData['capture'] = FALSE;
+    }
+
+    return new Ptsv2paymentsProcessingInformation($processingInfoData);
+  }
+
+  /**
+   * Create payment information object.
+   *
+   * @param array $data
+   * @return Ptsv2paymentsPaymentInformation
+   */
+  public function createPaymentInformation(array $data) {
+    return new Ptsv2paymentsPaymentInformation($data);
+  }
+
+  /**
+   * Creates the customer object in payment information.
+   *
+   * @param array $data
+   * @return Ptsv2paymentsPaymentInformationCustomer
+   */
+  public function createPaymentInformationCustomer(array $data) {
+    return new Ptsv2paymentsPaymentInformationCustomer($data);
+  }
+
+  /**
    * Create a CreatePaymentRequest.
    *
-   * @param Ptsv2paymentsClientReferenceInformation $clientReferenceInfo
-   * @param Ptsv2paymentsOrderInformation           $orderInformation
-   * @param Ptsv2paymentsTokenInformation           $tokenInformation
+   * @param array $data
+   *   The arrayed data.
    *
    * @return CreatePaymentRequest
    */
-  public function createPaymentRequest(Ptsv2paymentsClientReferenceInformation $clientReferenceInfo, Ptsv2paymentsOrderInformation $orderInformation, Ptsv2paymentsTokenInformation $tokenInformation) {
-    $paymentRequest = new CreatePaymentRequest([
-      'clientReferenceInformation' => $clientReferenceInfo,
-      'orderInformation' => $orderInformation,
-      'tokenInformation' => $tokenInformation,
-    ]);
+  public function createPaymentRequest(array $data) {
+    $paymentRequest = new CreatePaymentRequest($data);
 
     return $paymentRequest;
   }
@@ -465,7 +545,7 @@ class CybersourceClient {
   /**
    * Create payment request.
    *
-   * @param CreatePaymentRequest $data
+   * @param CreatePaymentRequest $req
    *
    * @return PtsV2PaymentsPost201Response
    */
@@ -498,7 +578,17 @@ class CybersourceClient {
   public function getTransaction($id) {
     $transactionDetails = new TransactionDetailsApi($this->apiClient);
 
-    return $transactionDetails->getTransactionWithHttpInfo($id);
+    try {
+      $transaction = $transactionDetails->getTransactionWithHttpInfo($id);
+    }
+    catch (ApiException $e) {
+      print_r($e->getResponseBody());
+      print_r($e->getMessage());
+
+      return [];
+    }
+
+    return $transaction;
   }
 
   /**
@@ -582,7 +672,7 @@ class CybersourceClient {
    * Leave private for now but it may be useful to have other scripts update
    * the client status later.
    *
-   * @param boolean $ready
+   * @param bool $ready
    */
   private function setReady(bool $ready) {
     $this->ready = $ready;
@@ -591,7 +681,7 @@ class CybersourceClient {
   /**
    * Is the Client ready to make requests.
    *
-   * @return boolean
+   * @return bool
    */
   public function isReady(): bool {
     return $this->ready;

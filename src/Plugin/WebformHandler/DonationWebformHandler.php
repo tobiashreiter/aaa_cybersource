@@ -194,12 +194,17 @@ class DonationWebformHandler extends WebformHandlerBase {
 
   /**
    * {@inheritdoc}
+   *
+   * Transactions with the CyberSource API take place at this step. If there
+   * are problems communicating with the payment processor it may be
+   * communicated the user.
    */
   public function validateForm(array &$form, FormStateInterface $form_state, WebformSubmissionInterface $webform_submission) {
+    // Run field and element validation in the parent classes.
     parent::validateForm($form, $form_state, $webform_submission);
 
-    /**
-     * Check that the necessary fields exist in the form before any processing.
+    /*
+     * Validate the necessary fields exist in the form before any processing.
      * Send error if they do not.
      */
     $elements = $this->webform->getElementsDecoded();
@@ -221,14 +226,13 @@ class DonationWebformHandler extends WebformHandlerBase {
       $form_state->setErrorByName('amount', 'Missing necessary fields for payment transaction. Payment transaction not processed. Contact adminstrator to update form configuration.');
     }
 
-    // Check for form errors like missing required fields.
+    // Check for any form errors, including those from parent classes.
     if ($form_state->hasAnyErrors() === TRUE) {
       return;
     }
 
-    // Handle communication here so api errors may communicated back.
+    // Set up client and prepare data.
     $data = $webform_submission->getData();
-
     $environment = $this->getFormEnvironment();
     $this->cybersourceClient->setEnvironment($environment);
 
@@ -242,6 +246,20 @@ class DonationWebformHandler extends WebformHandlerBase {
 
       return;
     }
+
+    // Processing option to recurring payments.
+    $processingOptions = [];
+    $isRecurring = FALSE;
+    if (isset($data['recurring']) && $data['recurring'] == TRUE) {
+      $isRecurring = TRUE;
+      $processingOptions = $this->cybersourceClient->createProcessingOptions();
+    }
+
+    // Client generated code.
+    $prefix = $this->getCodePrefix();
+    $number1 = rand(1000, 9999);
+    $number2 = rand(1000, 9999);
+    $data['code'] = $prefix . '-' . $number1 . '-' . $number2;
 
     // Create Payment Instrument.
     $billTo = [
@@ -257,14 +275,18 @@ class DonationWebformHandler extends WebformHandlerBase {
       'email' => $data['email'],
       'phoneNumber' => $data['phone'],
     ];
+
     $orderInfoBilling = $this->cybersourceClient->createBillingInformation($billTo);
 
-    // Client generated code.
-    // @todo Let client set code prefix on a per form basis.
-    $prefix = $this->getCodePrefix();
-    $number1 = rand(1000, 9999);
-    $number2 = rand(1000, 9999);
-    $data['code'] = $prefix . '-' . $number1 . '-' . $number2;
+    if ($isRecurring === TRUE) {
+      $shipTo = $billTo;
+
+      unset($shipTo['email']);
+      unset($shipTo['phoneNumber']);
+
+      $orderInfoShipTo = $this->cybersourceClient->createShippingInformation($shipTo);
+    }
+
     $clientReferenceInformation = $this->cybersourceClient->createClientReferenceInformation([
       'code' => $data['code'],
     ]);
@@ -275,9 +297,25 @@ class DonationWebformHandler extends WebformHandlerBase {
       'currency' => 'USD',
     ]);
 
-    $orderInformation = $this->cybersourceClient->createOrderInformation($amountDetails, $orderInfoBilling);
+    $orderInformationArr = [
+      'amountDetails' => $amountDetails,
+      'billTo' => $orderInfoBilling,
+    ];
 
-    $payRequest = $this->cybersourceClient->createPaymentRequest($clientReferenceInformation, $orderInformation, $tokenInformation);
+    if ($isRecurring === TRUE) {
+      $orderInformationArr['shipTo'] = $orderInfoShipTo;
+    }
+
+    $orderInformation = $this->cybersourceClient->createOrderInformation($orderInformationArr);
+
+    $requestParameters = [
+      'clientReferenceInformation' => $clientReferenceInformation,
+      'orderInformation' => $orderInformation,
+      'processingInformation' => $processingOptions,
+      'tokenInformation' => $tokenInformation,
+    ];
+
+    $payRequest = $this->cybersourceClient->createPaymentRequest($requestParameters);
 
     $payResponse = $this->cybersourceClient->createPayment($payRequest);
 
@@ -288,6 +326,7 @@ class DonationWebformHandler extends WebformHandlerBase {
       return;
     }
 
+    // @todo reuse
     $data['payment_id'] = $payResponse[0]['id'];
     $submitted = $payResponse[0]['submitTimeUtc'];
     $status = $payResponse[0]['status'];
@@ -299,8 +338,17 @@ class DonationWebformHandler extends WebformHandlerBase {
     $payment->set('authorized_amount', $amount);
     $payment->set('submitted', $submitted);
     $payment->set('status', $status);
-    $payment->set('recurring', 0);
+    $payment->set('recurring', $isRecurring);
     $payment->set('environment', $environment);
+    $payment->set('recurring_active', FALSE);
+
+    if ($isRecurring === TRUE) {
+      $tokens = $payResponse[0]->getTokenInformation();
+      $customer = $tokens->getCustomer();
+      $payment->set('customer_id', $customer->getId());
+      $payment->set('recurring_active', TRUE);
+    }
+
     $payment->save();
 
     $data['payment_entity'] = $payment->id();
@@ -462,7 +510,7 @@ class DonationWebformHandler extends WebformHandlerBase {
 
     if (empty($environment) && $this->cybersourceClient->isReady() === TRUE) {
       $global = $settings->get('global');
-      return $global['auth'];
+      return $global['environment'];
     }
     elseif ($this->cybersourceClient->isReady() === FALSE) {
       return '';
@@ -548,7 +596,7 @@ class DonationWebformHandler extends WebformHandlerBase {
       Card Type {$this->cardTypeNumberToString($card->getType())}
       Card Number xxxxxxxxxxxxx{$card->getSuffix()}
       Expiration {$card->getExpirationMonth()}-{$card->getExpirationYear()}
-      
+
       TOTAL AMOUNT
       $ {$amount}
       ";

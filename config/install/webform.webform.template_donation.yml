@@ -39,6 +39,9 @@ elements: |-
       '#other__field_prefix': $
       '#other__min': '1'
       '#required': true
+    recurring:
+      '#type': checkbox
+      '#title': 'Yes, automatically repeat this gift every month.'
     direction:
       '#type': webform_radios_other
       '#title': 'Please direct my gift towards'

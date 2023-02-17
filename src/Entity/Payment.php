@@ -91,7 +91,18 @@ class Payment extends ContentEntityBase implements PaymentInterface {
    * {@inheritdoc}
    */
   public function isRecurring(): bool {
-    return $this->get('recurring')->value === TRUE;
+    return $this->get('recurring')->value == 1;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isActiveRecurring(): bool {
+    if ($this->isRecurring() === FALSE) {
+      return FALSE;
+    }
+
+    return $this->get('recurring_active')->value == 1;
   }
 
   /**
@@ -153,22 +164,9 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ])
       ->setDisplayConfigurable('view', TRUE);
 
-    $fields['card_token'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Card Token'))
-      ->setDescription(t('The tokenized card (instrument) identifier.'))
-      ->setDisplayOptions('view', [
-        'type' => 'string',
-        'label' => 'above',
-        'weight' => 6,
-        'settings' => [
-          'link_to_entity' => FALSE,
-        ],
-      ])
-      ->setDisplayConfigurable('view', TRUE);
-
-    $fields['payment_instrument_id'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Payment Instrument Token'))
-      ->setDescription(t('The tokenized payment instrument idenfifier.'))
+    $fields['customer_id'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Customer ID Token'))
+      ->setDescription(t('The tokenized customer idenfifier.'))
       ->setDisplayOptions('view', [
         'type' => 'string',
         'label' => 'above',
@@ -210,19 +208,6 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ])
       ->setRequired(TRUE);
 
-    $fields['transaction_id'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Network Transaction ID'))
-      ->setDescription(t('Network transaction identifier (TID) or Processor transaction ID. You can use this value to identify a specific transaction when you are discussing the transaction with your processor.'))
-      ->setDisplayOptions('view', [
-        'type' => 'string',
-        'label' => 'above',
-        'weight' => 7,
-        'settings' => [
-          'link_to_entity' => FALSE,
-        ],
-      ])
-      ->setDisplayConfigurable('view', TRUE);
-
     $fields['status'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Payment Status'))
       ->setDescription(t('Status of the payment transaction.'))
@@ -250,7 +235,21 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ->setDisplayConfigurable('view', TRUE)
       ->setRequired(TRUE);
 
-    $fields['submission'] = BaseFieldDefinition::create('entity_reference')
+    $fields['environment'] = BaseFieldDefinition::create('string')
+    ->setLabel(t('Environment'))
+    ->setDescription(t('The environment used by the form for the transaction. "Development" environment means that the form was sandboxed for testing. "Production" is a real transaction.'))
+    ->setDisplayOptions('view', [
+      'type' => 'string',
+      'label' => 'above',
+      'weight' => 11,
+      'settings' => [
+        'link_to_entity' => FALSE,
+      ],
+    ])
+    ->setRequired(TRUE)
+    ->setDisplayConfigurable('view', TRUE);
+
+      $fields['submission'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Form Submission'))
       ->setDescription(t('Submission data provided by the user via donation webform.'))
       ->setSetting('target_type', 'webform_submission')
@@ -265,19 +264,31 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ])
       ->setRequired(FALSE);
 
-    $fields['environment'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Environment'))
-      ->setDescription(t('The environment used by the form for the transaction. "Development" environment means that the form was sandboxed for testing. "Production" is a real transaction.'))
+      $fields['recurring_active'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('Active recurring payment.'))
+      ->setDescription(t('Should this payment be billed again? If you wish to cancel additional recurring payments then set this value to "no."'))
       ->setDisplayOptions('view', [
-        'type' => 'string',
+        'type' => 'boolean',
         'label' => 'above',
-        'weight' => 11,
+        'weight' => 9,
         'settings' => [
-          'link_to_entity' => FALSE,
+          'format' => 'yes-no',
         ],
       ])
-      ->setRequired(TRUE)
-      ->setDisplayConfigurable('view', TRUE);
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE)
+      ->setRequired(FALSE);
+
+    $fields['recurring_max'] = BaseFieldDefinition::create('integer')
+      ->setLabel(t('Maximum number of recurring transactions.'))
+      ->setDescription(t('A recurring payment will be processed until this number is met. 12 is the default value meaning 12 transactions including the first.'))
+      ->setDisplayOptions('form', [
+        'type' => 'number',
+      ])
+      ->setDefaultValue(12)
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE)
+      ->setRequired(FALSE);
 
     $fields['recurring_payments'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Recurring Payments'))

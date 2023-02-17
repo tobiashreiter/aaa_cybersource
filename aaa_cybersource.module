@@ -7,6 +7,7 @@
 
 use \Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Url;
 use Drupal\aaa_cybersource\Entity\Payment;
 use Drupal\webform\WebformSubmissionInterface;
 use Drupal\webform\Entity\Webform;
@@ -96,7 +97,7 @@ function aaa_cybersource_webform_submission_form_alter(array &$form, FormStateIn
 
 /**
  * Implements hook_mail().
- * 
+ *
  * Copied from the Webform module, including using some of the utility functions.
  */
 function aaa_cybersource_mail($key, &$message, $params) {
@@ -217,3 +218,43 @@ function _add_receipt_alias(Webform $entity) {
   $path_alias_current->setAlias($path_alias);
   $path_alias_current->save();
 }
+
+ /**
+ * Implements hook_cronapi().
+ */
+function aaa_cybersource_cron() {
+  $recurring = \Drupal::service('aaa_cybersource.recurring_payment');
+
+  $payment_ids = $recurring->query();
+
+  $payments = Payment::loadMultiple($payment_ids);
+
+  $count = 0;
+
+  if (count($payments) > 0) {
+    $status = $recurring->buildRecurringPayment(array_pop($payments));
+
+    if ($status === TRUE) {
+      $count++;
+    }
+
+    \Drupal::service('logger.factory')->get('aaa_cybersource')->info('@count recurring payments created', [
+      '@count' => $count,
+    ]);
+  }
+
+}
+
+// function aaa_cybersource_entity_operation_alter(array &$operations, $entity) {
+//   $entityTypeId = $entity->getEntityTypeId();
+//   if ($entityTypeId !== 'payment') {
+//       return;
+//   }
+
+//   $editUrl = Url::fromRoute('aaa_cybersource.settings_form');
+//     $operations['custom_operation'] = array(
+//       'title' => t('Settings Form'),
+//       'weight' => 20,
+//       'url' => $editUrl,
+//     );
+// }

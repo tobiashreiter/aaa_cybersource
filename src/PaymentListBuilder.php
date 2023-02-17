@@ -62,6 +62,33 @@ class PaymentListBuilder extends EntityListBuilder {
   /**
    * {@inheritdoc}
    */
+  public function load() {
+    $entity_ids = $this->getEntityIds();
+    return $this->storage->loadMultiple($entity_ids);
+  }
+
+  /**
+   * Loads entity IDs using a pager sorted by the entity id.
+   *
+   * @return array
+   *   An array of entity IDs.
+   */
+  protected function getEntityIds() {
+    $query = $this->getStorage()->getQuery()
+      ->accessCheck(TRUE)
+      ->sort('created', 'DESC');
+      // ->sort($this->entityType->getKey('id'));
+
+    // Only add the pager if a limit is specified.
+    if ($this->limit) {
+      $query->pager($this->limit);
+    }
+    return $query->execute();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function render() {
     $build['table'] = parent::render();
 
@@ -81,6 +108,7 @@ class PaymentListBuilder extends EntityListBuilder {
     $header['id'] = $this->t('ID');
     $header['status'] = $this->t('Status');
     $header['recurring'] = $this->t('Recurring Payment');
+    $header['recurring_active'] = $this->t('Is active recurring payment?');
     $header['created'] = $this->t('Created');
     $header['changed'] = $this->t('Last Updated');
     return $header + parent::buildHeader();
@@ -93,7 +121,8 @@ class PaymentListBuilder extends EntityListBuilder {
     /* @var $entity \Drupal\aaa_cybersource\PaymentInterface */
     $row['id'] = $entity->toLink();
     $row['status'] = $entity->getStatus();
-    $row['recurring'] = $entity->isRecurring() ? 'Yes' : 'No';
+    $row['recurring'] = $entity->isRecurring() === TRUE ? 'Yes' : 'No';
+    $row['recurring_active'] = $entity->isActiveRecurring() === TRUE ? 'Yes' : 'No';
     $row['created'] = $this->dateFormatter->format($entity->getCreatedTime());
     $row['changed'] = $this->dateFormatter->format($entity->getChangedTime());
     return $row + parent::buildRow($entity);

@@ -17,3 +17,10 @@ function aaa_cybersource_uninstall() {
     $webform_entity->delete();
   }
 }
+
+/**
+ * Recurring donations.
+ */
+function aaa_cybersource_update_9001() {
+
+}
