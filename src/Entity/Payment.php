@@ -236,20 +236,20 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ->setRequired(TRUE);
 
     $fields['environment'] = BaseFieldDefinition::create('string')
-    ->setLabel(t('Environment'))
-    ->setDescription(t('The environment used by the form for the transaction. "Development" environment means that the form was sandboxed for testing. "Production" is a real transaction.'))
-    ->setDisplayOptions('view', [
-      'type' => 'string',
-      'label' => 'above',
-      'weight' => 11,
-      'settings' => [
-        'link_to_entity' => FALSE,
-      ],
-    ])
-    ->setRequired(TRUE)
-    ->setDisplayConfigurable('view', TRUE);
+      ->setLabel(t('Environment'))
+      ->setDescription(t('The environment used by the form for the transaction. "Development" environment means that the form was sandboxed for testing. "Production" is a real transaction.'))
+      ->setDisplayOptions('view', [
+        'type' => 'string',
+        'label' => 'above',
+        'weight' => 11,
+        'settings' => [
+          'link_to_entity' => FALSE,
+        ],
+      ])
+      ->setRequired(TRUE)
+      ->setDisplayConfigurable('view', TRUE);
 
-      $fields['submission'] = BaseFieldDefinition::create('entity_reference')
+    $fields['submission'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Form Submission'))
       ->setDescription(t('Submission data provided by the user via donation webform.'))
       ->setSetting('target_type', 'webform_submission')
@@ -264,7 +264,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ])
       ->setRequired(FALSE);
 
-      $fields['recurring_active'] = BaseFieldDefinition::create('boolean')
+    $fields['recurring_active'] = BaseFieldDefinition::create('boolean')
       ->setLabel(t('Active recurring payment.'))
       ->setDescription(t('Should this payment be billed again? If you wish to cancel additional recurring payments then set this value to "no."'))
       ->setDisplayOptions('view', [
@@ -289,6 +289,21 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE)
       ->setRequired(FALSE);
+
+    $fields['recurring_next'] = BaseFieldDefinition::create('datetime')
+      ->setLabel(t('Next recurring payment date'))
+      ->setDescription(t('The date time after which the next recurring payment will be charged.'))
+      ->setDisplayOptions('view', [
+        'type' => 'datetime_default',
+        'label' => 'above',
+        'weight' => 1,
+        'settings' => [
+          'timezone_override' => '',
+          'format_type' => 'medium',
+        ],
+      ])
+      ->setRequired(FALSE)
+      ->setDisplayConfigurable('view', TRUE);
 
     $fields['recurring_payments'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Recurring Payments'))

@@ -245,16 +245,38 @@ function aaa_cybersource_cron() {
 
 }
 
-// function aaa_cybersource_entity_operation_alter(array &$operations, $entity) {
-//   $entityTypeId = $entity->getEntityTypeId();
-//   if ($entityTypeId !== 'payment') {
-//       return;
-//   }
+/**
+ * Takes CyberSource code and returns the human-string card type.
+ *
+ * @param string $code
+ * @return string
+ */
+function aaa_cybersource_card_type_number_to_string(string $code) {
+  $codes = [
+    '001' => 'Visa',
+    '002' => 'Mastercard',
+    '003' => 'American Express',
+    '004' => 'Discover',
+    '005' => 'Diners Club',
+    '006' => 'Carte Blanche',
+    '007' => 'JCB',
+    '014' => 'Enroute',
+    '021' => 'JAL',
+    '024' => 'Maestro',
+    '031' => 'Delta',
+    '033' => 'Visa Electron',
+    '034' => 'Dankort',
+    '036' => 'Cartes Bancaires',
+    '037' => 'Carta Si',
+    '039' => 'Encoded account number',
+    '040' => 'UATP',
+    '042' => 'Maestro',
+    '050' => 'Hipercard',
+    '051' => 'Aura',
+    '054' => 'Elo',
+    '062' => 'China UnionPay',
+  ];
 
-//   $editUrl = Url::fromRoute('aaa_cybersource.settings_form');
-//     $operations['custom_operation'] = array(
-//       'title' => t('Settings Form'),
-//       'weight' => 20,
-//       'url' => $editUrl,
-//     );
-// }
+  return $codes[$code];
+}
+

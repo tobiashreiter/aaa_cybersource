@@ -5,3 +5,6 @@ services:
   aaa_cybersource.recurring_payment:
     class: Drupal\aaa_cybersource\RecurringPayment
     arguments: ['@config.factory', '@file_system', '@logger.factory', '@entity.repository', '@request_stack', '@messenger', '@aaa_cybersource.cybersource_client', '@entity_type.manager']
+  aaa_cybersource.receipts:
+    class: Drupal\aaa_cybersource\Receipts
+    arguments: ['@config.factory', '@date.formatter']

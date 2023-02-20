@@ -89,6 +89,8 @@ class DonationWebformHandler extends WebformHandlerBase {
    */
   protected $dateFormatter;
 
+  protected $receiptHandler;
+
   /**
    * Create this container handler.
    *
@@ -113,6 +115,7 @@ class DonationWebformHandler extends WebformHandlerBase {
     $instance->languageManager = $container->get('language_manager');
     $instance->mailManager = $container->get('plugin.manager.mail');
     $instance->dateFormatter = $container->get('date.formatter');
+    $instance->receipts = $container->get('aaa_cybersource.receipts');
 
     return $instance;
   }
@@ -401,6 +404,7 @@ class DonationWebformHandler extends WebformHandlerBase {
       $site_name = $this->replaceTokens('[site:name]', NULL, [], []);
       $to = $this->replaceTokens('[webform_submission:values:email]', $webform_submission, [], []);
       $body = $this->buildReceiptBody($webform_submission);
+
       $result = $this->mailManager->mail(
         'aaa_cybersource',
         $key,
@@ -551,86 +555,7 @@ class DonationWebformHandler extends WebformHandlerBase {
     $payment = $this->entityRepository->getActive('payment', $data['payment_entity']);
     $payment_id = $payment->get('payment_id')->value;
     $transaction = $this->cybersourceClient->getTransaction($payment_id);
-    $billTo = $transaction[0]->getOrderInformation()->getBillTo();
-    $paymentInformation = $transaction[0]->getPaymentInformation();
-    $card = $paymentInformation->getCard();
-    $amountDetails = $transaction[0]->getOrderInformation()->getAmountDetails();
-    $datetime = $transaction[0]->getSubmitTimeUTC();
-    $amount = strpos($amountDetails->getTotalAmount(), '.') > 0 ? $amountDetails->getTotalAmount() : $amountDetails->getTotalAmount() . '.00';
-
-    $body = '';
-
-    $body .= "
-      RECEIPT
-
-      Date: {$this->dateFormatter->format(strtotime($datetime), 'long')}
-      Order Number: {$payment->get('code')->value}
-
-      ------------------------------------
-
-      BILLING INFORMATION
-
-      {$billTo->getFirstName()} {$billTo->getLastName()}";
-
-    if (!empty($billTo->getCompany())) {
-      $body .= "
-      {$billTo->getCompany()}";
-    }
-
-    $body .= "
-      {$billTo->getAddress1()}";
-
-    if (!empty($billTo->getAddress2())) {
-      $body .= "
-      {$billTo->getAddress2()}";
-    }
-
-    $body .= "
-      {$billTo->getLocality()}
-      {$billTo->getAdministrativeArea()}
-      {$billTo->getPostalCode()}
-      {$billTo->getEmail()}
-      {$billTo->getPhoneNumber()}
-
-      PAYMENT DETAILS
-      Card Type {$this->cardTypeNumberToString($card->getType())}
-      Card Number xxxxxxxxxxxxx{$card->getSuffix()}
-      Expiration {$card->getExpirationMonth()}-{$card->getExpirationYear()}
-
-      TOTAL AMOUNT
-      $ {$amount}
-      ";
-
-    return $body;
-  }
-
-  private function cardTypeNumberToString($code) {
-    $codes = [
-      '001' => 'Visa',
-      '002' => 'Mastercard',
-      '003' => 'American Express',
-      '004' => 'Discover',
-      '005' => 'Diners Club',
-      '006' => 'Carte Blanche',
-      '007' => 'JCB',
-      '014' => 'Enroute',
-      '021' => 'JAL',
-      '024' => 'Maestro',
-      '031' => 'Delta',
-      '033' => 'Visa Electron',
-      '034' => 'Dankort',
-      '036' => 'Cartes Bancaires',
-      '037' => 'Carta Si',
-      '039' => 'Encoded account number',
-      '040' => 'UATP',
-      '042' => 'Maestro',
-      '050' => 'Hipercard',
-      '051' => 'Aura',
-      '054' => 'Elo',
-      '062' => 'China UnionPay',
-    ];
-
-    return $codes[$code];
+    return $this->receiptHandler($payment, $transaction);
   }
 
 }

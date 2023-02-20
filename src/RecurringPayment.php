@@ -32,8 +32,7 @@ class RecurringPayment {
     MessengerInterface $messenger,
     CybersourceClient $client,
     EntityTypeManager $manager
-  )
-  {
+  ) {
     // Off to the races.
     $this->storage = $manager->getStorage('payment');
     $this->cybersourceClient = $client;

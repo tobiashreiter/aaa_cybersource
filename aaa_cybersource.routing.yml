@@ -40,7 +40,7 @@ aaa_cybersource.webform.receipt:
   path: '/webform/{webform}/receipt'
   defaults:
     _title: 'Receipt'
-    _controller: '\Drupal\aaa_cybersource\Controller\AaaWebformTemplatesReceiptController::webformReceipt'
+    _controller: '\Drupal\aaa_cybersource\Controller\AaaWebformTemplatesReceipt::webformReceipt'
   requirements:
     _entity_access: 'webform.view'
   options:
@@ -49,7 +49,7 @@ aaa_cybersource.payment.receipt:
   path: '/payment/{payment}/receipt'
   defaults:
     _title: 'Receipt'
-    _controller: '\Drupal\aaa_cybersource\Controller\AaaWebformTemplatesReceiptController::paymentReceipt'
+    _controller: '\Drupal\aaa_cybersource\Controller\AaaWebformTemplatesReceipt::paymentReceipt'
   requirements:
     _permission: 'view aaa_cybersource receipts'
   options:
