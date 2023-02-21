@@ -214,7 +214,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ->setDisplayOptions('view', [
         'type' => 'string',
         'label' => 'above',
-        'weight' => 8,
+        'weight' => 6,
         'settings' => [
           'link_to_entity' => FALSE,
         ],
@@ -227,7 +227,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ->setDisplayOptions('view', [
         'type' => 'boolean',
         'label' => 'above',
-        'weight' => 9,
+        'weight' => 7,
         'settings' => [
           'format' => 'yes-no',
         ],
@@ -241,7 +241,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ->setDisplayOptions('view', [
         'type' => 'string',
         'label' => 'above',
-        'weight' => 11,
+        'weight' => 13,
         'settings' => [
           'link_to_entity' => FALSE,
         ],
@@ -257,7 +257,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ->setDisplayOptions('view', [
         'type' => 'entity_reference_label',
         'label' => 'above',
-        'weight' => 10,
+        'weight' => 11,
         'settings' => [
           'link' => TRUE,
         ],
@@ -267,10 +267,18 @@ class Payment extends ContentEntityBase implements PaymentInterface {
     $fields['recurring_active'] = BaseFieldDefinition::create('boolean')
       ->setLabel(t('Active recurring payment.'))
       ->setDescription(t('Should this payment be billed again? If you wish to cancel additional recurring payments then set this value to "no."'))
+      ->setDisplayOptions('form', [
+        'type' => 'boolean_checkbox',
+        'weight' => 1,
+        'region' => 'content',
+        'settings' => [
+          'display_label' => TRUE,
+        ],
+      ])
       ->setDisplayOptions('view', [
         'type' => 'boolean',
         'label' => 'above',
-        'weight' => 9,
+        'weight' => 8,
         'settings' => [
           'format' => 'yes-no',
         ],
@@ -284,6 +292,21 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ->setDescription(t('A recurring payment will be processed until this number is met. 12 is the default value meaning 12 transactions including the first.'))
       ->setDisplayOptions('form', [
         'type' => 'number',
+        'weight' => 1,
+        'region' => 'content',
+        'settings' => [
+          'placeholder' => '',
+        ],
+      ])
+      ->setDisplayOptions('view', [
+        'type' => 'number_integer',
+        'label' => 'above',
+        'settings' => [
+          'thousands_separator' => '',
+          'prefix_suffix' => TRUE,
+        ],
+        'weight' => 9,
+        'region' => 'content',
       ])
       ->setDefaultValue(12)
       ->setDisplayConfigurable('form', TRUE)
@@ -293,16 +316,23 @@ class Payment extends ContentEntityBase implements PaymentInterface {
     $fields['recurring_next'] = BaseFieldDefinition::create('datetime')
       ->setLabel(t('Next recurring payment date'))
       ->setDescription(t('The date time after which the next recurring payment will be charged.'))
+      ->setDisplayOptions('form', [
+        'type' => 'datetime_default',
+        'weight' => 2,
+        'region' => 'content',
+        'settings' => [],
+      ])
       ->setDisplayOptions('view', [
         'type' => 'datetime_default',
         'label' => 'above',
-        'weight' => 1,
+        'weight' => 10,
         'settings' => [
           'timezone_override' => '',
           'format_type' => 'medium',
         ],
       ])
       ->setRequired(FALSE)
+      ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
     $fields['recurring_payments'] = BaseFieldDefinition::create('entity_reference')
@@ -313,7 +343,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ->setDisplayOptions('view', [
         'type' => 'entity_reference_label',
         'label' => 'above',
-        'weight' => 10,
+        'weight' => 12,
         'settings' => [
           'link' => TRUE,
         ],

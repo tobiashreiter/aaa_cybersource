@@ -4,12 +4,8 @@ namespace Drupal\aaa_cybersource;
 
 use Drupal\aaa_cybersource\Entity\Payment;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\EntityRepository;
 use Drupal\Core\Entity\EntityTypeManager;
-use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\Core\Messenger\MessengerInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Recurring Payment manager.
@@ -49,6 +45,13 @@ class RecurringPayment {
    * @var \Drupal\aaa_cybersource\Receipts
    */
   protected $receiptHandler;
+
+  /**
+   * Database datetime format.
+   *
+   * @var string
+   */
+  protected $dateTimeFormat = 'Y-m-d\TH:i:s';
 
   /**
    * Construct this manager.
@@ -98,6 +101,8 @@ class RecurringPayment {
       ->condition('payment_id', NULL, 'IS NOT NULL')
       // Must have customer stored.
       ->condition('customer_id', NULL, 'IS NOT NULL')
+      // Stored recurring_next date must be passed.
+      ->condition('recurring_next', date($this->dateTimeFormat), '<')
       ->execute();
   }
 
@@ -125,9 +130,14 @@ class RecurringPayment {
         '@code' => $code,
       ]);
 
+      // Disable recurring active. Maximum number met or exceeded.
+      $payment->set('recurring_active', FALSE);
+      $payment->save();
+
       return FALSE;
     }
 
+    // Set up the payment request.
     $this->cybersourceClient->setEnvironment($environment);
 
     $processingOptions = $this->cybersourceClient->createProcessingOptions($payment_id);
@@ -173,10 +183,11 @@ class RecurringPayment {
       return FALSE;
     }
 
-    // @todo reuse
+    // Save the Payment entity.
     $newPaymentId = $payResponse[0]['id'];
     $submitted = $payResponse[0]['submitTimeUtc'];
     $status = $payResponse[0]['status'];
+    // Not recurring.
     $isRecurring = FALSE;
 
     $newPayment = Payment::create([]);
@@ -200,15 +211,31 @@ class RecurringPayment {
     $newPayment->save();
     $pid = $newPayment->id();
 
+    // Update "parent" recurring payment.
     $allPayments = $payment->get('recurring_payments')->appendItem([
       'target_id' => $pid,
     ]);
+
+    // Check if max number of payments is exceeded after this transaction.
+    if (($payment->get('recurring_payments')->count() + 1) < $recurring_payments_max) {
+      // Set the next recurring payment date time.
+      $lastRecurringPayment = $newPayment->get('created')->value;
+      $nextRecurringTime = $this->getNextRecurringTime($lastRecurringPayment);
+      $format = 'Y-m-d\TH:i:s';
+      $nextRecurringDateTimeFormat = date($this->dateTimeFormat, $nextRecurringTime);
+      $payment->set('recurring_next', $nextRecurringDateTimeFormat);
+    }
+    else {
+      // Disable active recurring flag when the number of recurring payments meets the maximum.
+      $payment->set('recurring_active', FALSE);
+    }
 
     $payment->save();
 
     // Give platform time to process.
     sleep(5);
 
+    // Create and send receipt.
     $transaction = $this->cybersourceClient->getTransaction($newPaymentId);
     $key = $payment->id() . '_recurring_payment_handler_cron';
     $subject = $this->receiptHandler->getSubject();
@@ -232,6 +259,19 @@ class RecurringPayment {
     }
 
     return TRUE;
+  }
+
+  /**
+   * Create the next recurring time. +1 month.
+   *
+   * @param int $timestamp
+   *   Current timestamp.
+   *
+   * @return int
+   *   the next recurring timestamp.
+   */
+  protected function getNextRecurringTime(int $timestamp) {
+    return strtotime('+1 month', $timestamp);
   }
 
 }
