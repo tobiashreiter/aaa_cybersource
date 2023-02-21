@@ -2,7 +2,6 @@
 
 namespace Drupal\aaa_cybersource;
 
-use Drupal\aaa_cybersource\CybersourceClient;
 use Drupal\aaa_cybersource\Entity\Payment;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityRepository;
@@ -12,8 +11,22 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
+/**
+ * Recurring Payment manager.
+ */
 class RecurringPayment {
+  /**
+   * Storage interface for the Payment entity.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
   protected $storage;
+
+  /**
+   * Logger interface.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
+   */
   protected $logger;
 
   /**
@@ -23,20 +36,50 @@ class RecurringPayment {
    */
   protected $cybersourceClient;
 
+  /**
+   * Mailer.
+   *
+   * @var \Drupal\aaa_cybersource\Mailer
+   */
+  protected $mailer;
+
+  /**
+   * Receipt hander.
+   *
+   * @var \Drupal\aaa_cybersource\Receipts
+   */
+  protected $receiptHandler;
+
+  /**
+   * Construct this manager.
+   *
+   * @param Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   Config factory interface.
+   * @param Drupal\Core\Logger\LoggerChannelFactoryInterface $logger
+   *   Drupal logger channel interface.
+   * @param Drupal\Core\Entity\EntityTypeManager $manager
+   *   Entitytype manager.
+   * @param Drupal\aaa_cybersource\CybersourceClient $client
+   *   AAA CyberSource clients.
+   * @param Drupal\aaa_cybersource\Mailer $mailer
+   *   Mailer manager.
+   * @param Drupal\aaa_cybersource\Receipts $receipts
+   *   Receipt handler.
+   */
   public function __construct(
     ConfigFactoryInterface $config_factory,
-    FileSystemInterface $file_system,
     LoggerChannelFactoryInterface $logger,
-    EntityRepository $entity_repository,
-    RequestStack $request_stack,
-    MessengerInterface $messenger,
+    EntityTypeManager $manager,
     CybersourceClient $client,
-    EntityTypeManager $manager
+    Mailer $mailer,
+    Receipts $receipts,
   ) {
     // Off to the races.
     $this->storage = $manager->getStorage('payment');
     $this->cybersourceClient = $client;
     $this->logger = $logger->get('aaa_cybersource');
+    $this->mailer = $mailer;
+    $this->receiptHandler = $receipts;
   }
 
   /**
@@ -61,8 +104,11 @@ class RecurringPayment {
   /**
    * Build a recurring payment.
    *
-   * @param Payment $payment
+   * @param Drupal\aaa_cybersource\Entity\Payment $payment
+   *   Payment entity.
+   *
    * @return bool
+   *   TRUE if the transaction was made successfully.
    */
   public function buildRecurringPayment(Payment $payment) {
     $payment_id = $payment->get('payment_id')->value;
@@ -75,7 +121,7 @@ class RecurringPayment {
     $recurring_payments_max = $payment->get('recurring_max')->value;
 
     if (($recurring_payments_count + 1) >= $recurring_payments_max) {
-      $this->logger->warn('Payment @code recurring charge will not be processed. Number of payments exceeds the maximum value.', [
+      $this->logger->info('Payment @code recurring charge will not be processed. Number of payments exceeds the maximum value.', [
         '@code' => $code,
       ]);
 
@@ -159,6 +205,31 @@ class RecurringPayment {
     ]);
 
     $payment->save();
+
+    // Give platform time to process.
+    sleep(5);
+
+    $transaction = $this->cybersourceClient->getTransaction($newPaymentId);
+    $key = $payment->id() . '_recurring_payment_handler_cron';
+    $subject = $this->receiptHandler->getSubject();
+    $transaction = $this->cybersourceClient->getTransaction($payment_id);
+    $billTo = $transaction[0]->getOrderInformation()->getBillTo();
+    $to = $billTo->getEmail();
+    $paymentInformation = $transaction[0]->getPaymentInformation();
+    $amountDetails = $transaction[0]->getOrderInformation()->getAmountDetails();
+    $datetime = $transaction[0]->getSubmitTimeUTC();
+
+    $body = $this->receiptHandler->buildReceiptEmailBody($newPayment, $billTo, $paymentInformation, $amountDetails, $datetime);
+    $result = $this->mailer->sendMail($key, $to, $subject, $body);
+
+    if ($result['send'] === TRUE) {
+      $context = [
+        '@code' => $payment->get('code')->value,
+        'link' => $payment->toLink('View', 'canonical')->toString(),
+      ];
+
+      $this->logger->info('Recurring donation cron sent receipt email for @code recurring transaction.', $context);
+    }
 
     return TRUE;
   }

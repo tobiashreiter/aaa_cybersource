@@ -24,11 +24,11 @@ class PaymentForm extends ContentEntityForm {
 
     if ($result == SAVED_NEW) {
       $this->messenger()->addStatus($this->t('New payment %label has been created.', $message_arguments));
-      $this->logger('aaa_cybersource')->notice('Created new payment %label', $logger_arguments);
+      $this->logger('aaa_cybersource')->info('Created new payment %label', $logger_arguments);
     }
     else {
       $this->messenger()->addStatus($this->t('The payment %label has been updated.', $message_arguments));
-      $this->logger('aaa_cybersource')->notice('Updated new payment %label.', $logger_arguments);
+      $this->logger('aaa_cybersource')->info('Updated new payment %label.', $logger_arguments);
     }
 
     $form_state->setRedirect('entity.payment.canonical', ['payment' => $entity->id()]);

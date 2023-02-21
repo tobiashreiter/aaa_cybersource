@@ -5,27 +5,25 @@ namespace Drupal\aaa_cybersource;
 use CyberSource\ApiClient;
 use CyberSource\ApiException;
 use CyberSource\Configuration;
-use CyberSource\Api\PaymentsApi;
-use CyberSource\Api\KeyGenerationApi;
 
-use Drupal\Core\Entity\EntityRepository;
-
-use CyberSource\Api\PaymentInstrumentApi;
-use CyberSource\Logging\LogConfiguration;
-use Drupal\Core\File\FileSystemInterface;
-use CyberSource\Api\TransactionDetailsApi;
-use CyberSource\Model\CreatePaymentRequest;
+use CyberSource\Api\CustomerApi;
+use CyberSource\Api\CustomerPaymentInstrumentApi;
 use CyberSource\Api\InstrumentIdentifierApi;
-use Drupal\Core\Messenger\MessengerInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
+use CyberSource\Api\KeyGenerationApi;
+use CyberSource\Api\PaymentsApi;
+use CyberSource\Api\PaymentInstrumentApi;
+use CyberSource\Api\TransactionDetailsApi;
+
+use CyberSource\Authentication\Core\MerchantConfiguration;
+
+use CyberSource\Logging\LogConfiguration;
+
+use CyberSource\Model\CreatePaymentRequest;
 use CyberSource\Model\Ptsv2paymentsOrderInformation;
 use CyberSource\Model\Ptsv2paymentsTokenInformation;
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use CyberSource\Model\PostInstrumentIdentifierRequest;
 use CyberSource\Model\Ptsv2paymentsPaymentInformation;
 use CyberSource\Model\Ptsv2paymentsProcessingInformation;
-use CyberSource\Authentication\Core\MerchantConfiguration;
 use CyberSource\Model\Ptsv2paymentsOrderInformationBillTo;
 use CyberSource\Model\Ptsv2paymentsOrderInformationShipTo;
 use CyberSource\Model\Ptsv2paymentsClientReferenceInformation;
@@ -38,6 +36,14 @@ use CyberSource\Model\Ptsv2paymentsProcessingInformationAuthorizationOptionsInit
 use CyberSource\Model\Tmsv2customersEmbeddedDefaultPaymentInstrumentInstrumentIdentifier;
 use CyberSource\Model\Tmsv2customersEmbeddedDefaultPaymentInstrumentEmbeddedInstrumentIdentifierCard;
 use CyberSource\Model\Ptsv2paymentsProcessingInformationAuthorizationOptionsInitiatorMerchantInitiatedTransaction;
+
+use Drupal\Core\Entity\EntityRepository;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * CybersourceClient service creates Cybersource objects and makes requests.
@@ -628,6 +634,54 @@ class CybersourceClient {
     ];
 
     return $hosts[$this->requestHost];
+  }
+
+  /**
+   * Get Customer data.
+   *
+   * @param string $customerId
+   *   The customer token.
+   *
+   * @return array
+   *   Response array.
+   */
+  public function getCustomerData(string $customerId) {
+    $customerClient = new CustomerApi($this->apiClient);
+
+    try {
+      $customer = $customerClient->getCustomer($customerId);
+    }
+    catch (ApiException $e) {
+      print_r($e->getResponseBody());
+      print_r($e->getMessage());
+
+      return [];
+    }
+
+    return $customer;
+  }
+
+  /**
+   * Get customer Payment Instrument.
+   *
+   * @param string $customerId
+   * @param string $paymentInstrumentId
+   * @return array
+   */
+  public function getPaymentInstrument(string $customerId, string $paymentInstrumentId) {
+    $paymentInstrumentApi = new CustomerPaymentInstrumentApi($this->apiClient);
+
+    try {
+      $pi = $paymentInstrumentApi->getCustomerPaymentInstrument($customerId, $paymentInstrumentId);
+    }
+    catch (ApiException $e) {
+      print_r($e->getResponseBody());
+      print_r($e->getMessage());
+
+      return [];
+    }
+
+    return $pi;
   }
 
   /**

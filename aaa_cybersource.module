@@ -220,7 +220,7 @@ function _add_receipt_alias(Webform $entity) {
 }
 
  /**
- * Implements hook_cronapi().
+ * Implements hook_cron().
  */
 function aaa_cybersource_cron() {
   $recurring = \Drupal::service('aaa_cybersource.recurring_payment');
@@ -231,18 +231,19 @@ function aaa_cybersource_cron() {
 
   $count = 0;
 
-  if (count($payments) > 0) {
-    $status = $recurring->buildRecurringPayment(array_pop($payments));
+  foreach ($payments as $payment) {
+    $status = $recurring->buildRecurringPayment($payment);
 
     if ($status === TRUE) {
       $count++;
     }
+  }
 
+  if ($count > 0) {
     \Drupal::service('logger.factory')->get('aaa_cybersource')->info('@count recurring payments created', [
       '@count' => $count,
     ]);
   }
-
 }
 
 /**

@@ -32,6 +32,8 @@ class Receipts {
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The configuration factory.
+   * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
+   *   Date formatter functions.
    */
   public function __construct(ConfigFactoryInterface $config_factory, DateFormatterInterface $date_formatter) {
     $this->configFactory = $config_factory;
@@ -39,12 +41,25 @@ class Receipts {
   }
 
   /**
+   * Return receipt email subject line.
+   *
+   * @return string
+   *   subject line.
+   */
+  public function getSubject() {
+    return 'Your Receipt';
+  }
+
+  /**
    * Build receipt element.
    *
    * @param Drupal\aaa_cybersource\Entity\Payment $payment
+   *   Payment entity.
    * @param array $transaction
+   *   Transaction array from Cybersource payment processor.
    *
    * @return array
+   *   Build array.
    */
   public function buildReceiptElements(Payment $payment, array $transaction) {
     $payment_id = $payment->get('payment_id')->value;
@@ -234,7 +249,10 @@ class Receipts {
     $build['payment_details']['list']['card_expiration_value'] = [
       '#type' => 'html_tag',
       '#tag' => 'dd',
-      '#value' => t(':month-:year', [':month' => $card->getExpirationMonth(), ':year' => $card->getExpirationYear()]),
+      '#value' => t(':month-:year', [
+        ':month' => $card->getExpirationMonth(),
+        ':year' => $card->getExpirationYear(),
+      ]),
     ];
 
     $build['total'] = [
@@ -261,17 +279,14 @@ class Receipts {
    * Build receipt body for email.
    *
    * @param Drupal\aaa_cybersource\Entity\Payment $payment
-   * @param array $transaction
+   *   Payment entity.
    *
    * @return string
+   *   Body text of the receipt.
    */
-  public function buildReceiptEmailBody(Payment $payment, array $transaction) {
-    $billTo = $transaction[0]->getOrderInformation()->getBillTo();
-    $paymentInformation = $transaction[0]->getPaymentInformation();
+  public function buildReceiptEmailBody(Payment $payment, $billTo, $paymentInformation, $amountDetails, $datetime) {
     $card = $paymentInformation->getCard();
-    $amountDetails = $transaction[0]->getOrderInformation()->getAmountDetails();
-    $datetime = $transaction[0]->getSubmitTimeUTC();
-    $amount = strpos($amountDetails->getTotalAmount(), '.') > 0 ? $amountDetails->getTotalAmount() : $amountDetails->getTotalAmount() . '.00';
+    $amount = strpos($amountDetails->getAuthorizedAmount(), '.') > 0 ? $amountDetails->getAuthorizedAmount() : $amountDetails->getAuthorizedAmount() . '.00';
 
     $body = '';
 
@@ -323,7 +338,10 @@ class Receipts {
    * Takes code and returns human readable name.
    *
    * @param string $code
+   *   The card type symbol.
+   *
    * @return string
+   *   human readable card type.
    */
   protected function cardTypeNumberToString($code) {
     return aaa_cybersource_card_type_number_to_string($code);

@@ -28,6 +28,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class DonationWebformHandler extends WebformHandlerBase {
 
   /**
+   * Logger Factory Interface.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
+   */
+  protected $loggerFactory;
+
+  /**
    * @var ConfigFactoryInterface
    */
   protected $configFactory;
@@ -89,7 +96,19 @@ class DonationWebformHandler extends WebformHandlerBase {
    */
   protected $dateFormatter;
 
+  /**
+   * Receipt hander.
+   *
+   * @var \Drupal\aaa_cybersource\Receipts
+   */
   protected $receiptHandler;
+
+  /**
+   * Mailer.
+   *
+   * @var \Drupal\aaa_cybersource\Mailer
+   */
+  protected $mailer;
 
   /**
    * Create this container handler.
@@ -115,7 +134,8 @@ class DonationWebformHandler extends WebformHandlerBase {
     $instance->languageManager = $container->get('language_manager');
     $instance->mailManager = $container->get('plugin.manager.mail');
     $instance->dateFormatter = $container->get('date.formatter');
-    $instance->receipts = $container->get('aaa_cybersource.receipts');
+    $instance->receiptHandler = $container->get('aaa_cybersource.receipts');
+    $instance->mailer = $container->get('aaa_cybersource.mailer');
 
     return $instance;
   }
@@ -125,7 +145,7 @@ class DonationWebformHandler extends WebformHandlerBase {
    */
   public function defaultConfiguration() {
     return [
-      'email_receipt' => FALSE,
+      'email_receipt' => TRUE,
     ];
   }
 
@@ -398,26 +418,12 @@ class DonationWebformHandler extends WebformHandlerBase {
     if ($this->configuration['email_receipt'] === TRUE) {
       // Cybersource needs a few seconds before the receipt can be accessed.
       sleep(5);
+
       $key = $this->getWebform()->id() . '_' . $this->getHandlerId();
-      $current_langcode = $this->languageManager->getCurrentLanguage()->getId();
-      $site_mail = $this->replaceTokens('[site:mail]', NULL, [], []);
-      $site_name = $this->replaceTokens('[site:name]', NULL, [], []);
       $to = $this->replaceTokens('[webform_submission:values:email]', $webform_submission, [], []);
       $body = $this->buildReceiptBody($webform_submission);
-
-      $result = $this->mailManager->mail(
-        'aaa_cybersource',
-        $key,
-        $to,
-        $current_langcode,
-        [
-          'from_mail' => $site_mail,
-          'from_name' => $site_name,
-          'subject' => 'Receipt',
-          'body' => $body,
-        ],
-        $site_mail,
-      );
+      $subject = $this->receiptHandler->getSubject();
+      $result = $this->mailer->sendMail($key, $to, $subject, $body);
 
       if ($result['send'] === TRUE) {
         $context = [
@@ -425,8 +431,8 @@ class DonationWebformHandler extends WebformHandlerBase {
           '@title' => $this->label(),
           'link' => $this->getWebform()->toLink($this->t('Edit'), 'handlers')->toString(),
         ];
-        $this->loggerFactory->notice('@form webform sent @title email.', $context);
 
+        $this->loggerFactory->info('@form webform sent @title email.', $context);
       }
     }
   }
@@ -550,12 +556,16 @@ class DonationWebformHandler extends WebformHandlerBase {
    * @return string
    */
   private function buildReceiptBody($webform_submission) {
-    // Submission Data and Payment entity.
     $data = $webform_submission->getData();
     $payment = $this->entityRepository->getActive('payment', $data['payment_entity']);
     $payment_id = $payment->get('payment_id')->value;
     $transaction = $this->cybersourceClient->getTransaction($payment_id);
-    return $this->receiptHandler($payment, $transaction);
+    $billTo = $transaction[0]->getOrderInformation()->getBillTo();
+    $paymentInformation = $transaction[0]->getPaymentInformation();
+    $amountDetails = $transaction[0]->getOrderInformation()->getAmountDetails();
+    $datetime = $transaction[0]->getSubmitTimeUTC();
+
+    return $this->receiptHandler->buildReceiptEmailBody($payment, $billTo, $paymentInformation, $amountDetails, $datetime);
   }
 
 }
