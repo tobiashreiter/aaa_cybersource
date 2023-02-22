@@ -11,14 +11,7 @@ aaa_cybersource.settings_form:
     _title: 'Cybersource Keys and Environments'
     _form: 'Drupal\aaa_cybersource\Form\SettingsForm'
   requirements:
-    _permission: 'administer aaa_cybersource keys'
-aaa_cybersource.test:
-  path: '/admin/config/cybersource/test'
-  defaults:
-    _controller: \Drupal\aaa_cybersource\Controller\Cybersource::build
-    _title: 'Cybersource Test Page'
-  requirements:
-    _permission: 'access administration pages'
+    _permission: 'administer aaa_cybersource settings'
 aaa_cybersource.token:
   path: '/admin/config/cybersource/token/{webform}'
   defaults:

@@ -381,19 +381,24 @@ access:
   view_any:
     roles: {  }
     users: {  }
-    permissions: {  }
+    permissions:
+      - 'administer aaa_cybersource webform'
+      - 'view aaa_cybersource webform submission'
   update_any:
     roles: {  }
     users: {  }
-    permissions: {  }
+    permissions:
+      - 'administer aaa_cybersource webform'
   delete_any:
     roles: {  }
     users: {  }
-    permissions: {  }
+    permissions:
+      - 'administer aaa_cybersource webform'
   purge_any:
     roles: {  }
     users: {  }
-    permissions: {  }
+    permissions:
+      - 'administer aaa_cybersource webform'
   view_own:
     roles: {  }
     users: {  }
@@ -409,7 +414,8 @@ access:
   administer:
     roles: {  }
     users: {  }
-    permissions: {  }
+    permissions:
+      - 'administer aaa_cybersource webform'
   test:
     roles: {  }
     users: {  }
@@ -417,7 +423,8 @@ access:
   configuration:
     roles: {  }
     users: {  }
-    permissions: {  }
+    permissions:
+      - 'administer aaa_cybersource webform'
 handlers:
   donation_webform_handler:
     id: donation_webform_handler

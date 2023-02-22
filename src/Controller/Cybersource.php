@@ -104,36 +104,6 @@ class Cybersource extends ControllerBase implements ContainerInjectionInterface 
   }
 
   /**
-   * Build test page.
-   *
-   * @return array
-   *   Render array.
-   */
-  public function build(): array {
-    $build['h2'] = [
-      '#type' => 'html_tag',
-      '#tag' => 'h2',
-      '#value' => 'Request Information',
-    ];
-
-    $request = $this->requestStack->getCurrentRequest();
-    $targetOrigin = $request->getSchemeAndHttpHost();
-    $build['origin_title'] = [
-      '#type' => 'html_tag',
-      '#tag' => 'h3',
-      '#value' => 'Site Origin',
-    ];
-
-    $build['origin'] = [
-      '#type' => 'html_tag',
-      '#tag' => 'p',
-      '#value' => $targetOrigin,
-    ];
-
-    return $build;
-  }
-
-  /**
    * Return a flex token for front-end operations.
    *
    * @return Symfony\Component\HttpFoundation\JsonResponse

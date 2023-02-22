@@ -1,21 +1,33 @@
-administer aaa_cybersource keys:
-  title: 'Administer aaa_cybersource keys'
-  description: 'Add/remove/edit Cybersource keys and environments.'
+administer aaa_cybersource settings:
+  title: 'Administer CyberSource payment platform settings'
+  description: 'Add/remove/edit Cybersource keys and environments. Adjust donation forms settings'
+  restrict access: true
+administer aaa_cybersource webform:
+  title: 'Administer donation webform settings'
+  description: 'Administer the donation/payment webforms.'
+  restrict access: true
+administer aaa_cybersource webform submission:
+  title: 'Administer donation webform submission data'
+  description: 'Administer the donation/payment webform submission data.'
+  restrict access: true
+view aaa_cybersource webform submission:
+  title: 'View donation webform submission data'
+  description: 'View donation/payment webform submission data.'
   restrict access: true
 view aaa_cybersource receipts:
-  title: 'View donation form receipts'
+  title: 'View any payment receipt'
   description: 'This permission allows users to bypass receipt availibility limitations. This permission does not work for Anonymous users.'
   restrict access: true
 administer payment:
-  title: 'Administer payment settings'
+  title: 'Administer payment entity settings'
   restrict access: true
 access payment overview:
-  title: 'Access payment overview page'
+  title: 'Access payment entity overview page'
 delete payment:
-  title: Delete payment
+  title: Delete payment entity
 create payment:
-  title: Create payment
+  title: Create payment entity
 view payment:
-  title: View payment
+  title: View payment entity
 edit payment:
-  title: Edit payment
+  title: Edit payment entity
