@@ -1,6 +1,6 @@
 uuid: null
 langcode: en
-status: open
+status: closed
 dependencies:
   module:
     - aaa_cybersource
@@ -26,15 +26,16 @@ elements: |-
       '#type': webform_radios_other
       '#title': 'Yes! I would like to make a gift in the following amount:'
       '#options':
-        2500: $2500
-        1000: $1000
-        500: $500
-        250: $250
-        150: $150
-        100: $100
         50: $50
+        100: $100
+        150: $150
+        250: $250
+        500: $500
+        1000: $1000
+        2500: $2500
+      '#options_display': buttons
       '#other__type': number
-      '#other__option_label': 'Other Amount'
+      '#other__option_label': Other
       '#other__placeholder': ''
       '#other__field_prefix': $
       '#other__min': '1'
@@ -47,6 +48,7 @@ elements: |-
       '#title': 'Please direct my gift towards'
       '#options':
         'Greatest Need': 'The Archives'' greatest need'
+      '#options_display': buttons
       '#other__option_label': Other
       '#other__placeholder': ''
       '#other__field_prefix': '(please specify)'
@@ -69,6 +71,7 @@ elements: |-
         '#options':
           honor: 'In honor of'
           memory: 'In memory of'
+        '#options_display': buttons
         '#states':
           visible:
             ':input[name="memorial_honorary_gifts"]':
@@ -145,6 +148,7 @@ elements: |-
         mastercard: Mastercard
         'american express': 'American Express'
         discover: Discover
+      '#options_display': buttons
       '#required': true
       '#required_error': 'Specify your card type.'
       '#states_clear': false
@@ -268,7 +272,9 @@ settings:
   form_access_denied_message: ''
   form_access_denied_attributes: {  }
   form_file_limit: ''
-  form_attributes: {  }
+  form_attributes:
+    class:
+      - webform-submission-form-template-donation
   form_method: ''
   form_action: ''
   share: false
@@ -421,5 +427,6 @@ handlers:
     status: true
     conditions: {  }
     weight: 0
-    settings: {  }
+    settings:
+      email_receipt: true
 variants: {  }

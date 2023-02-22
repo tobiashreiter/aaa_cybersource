@@ -85,8 +85,15 @@ class Mailer {
    *   The body of the message.
    */
   public function sendMail($key, $to, $subject, $body) {
+    $global = $this->configFactory->get('aaa_cybersource.settings')->get('global');
     $current_langcode = $this->languageManager->getCurrentLanguage()->getId();
-    $site_mail = $this->tokenManager->replace('[site:mail]', NULL, [], []);
+    if (isset($global['receipt_sender']) === TRUE) {
+      $site_mail = $global['receipt_sender'];
+    }
+    else {
+      $site_mail = $this->tokenManager->replace('[site:mail]', NULL, [], []);
+    }
+
     $site_name = $this->tokenManager->replace('[site:name]', NULL, [], []);
 
     $result = $this->mailManager->mail(

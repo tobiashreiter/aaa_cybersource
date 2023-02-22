@@ -105,6 +105,7 @@ class SettingsForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $forms_ids = $this->getFormsIds();
     $config = $this->config('aaa_cybersource.settings');
+    $site_config = $this->configFactory->get('system.site');
 
     $form['#attached']['library'][] = 'aaa_cybersource/settingsForm';
 
@@ -142,6 +143,13 @@ class SettingsForm extends ConfigFormBase {
         'JWT' => $this->t('JWT Certificate'),
       ],
       '#default_value' => $config->get('global')['auth'] ?? '',
+    ];
+
+    $form['global']['fieldset']['receipt_sender'] = [
+      '#type' => 'email',
+      '#title' => $this->t('Receipt sender'),
+      '#description' => $this->t('Email address that sends receipts.'),
+      '#default_value' => $config->get('global')['receipt_sender'] ?? $site_config->get('mail'),
     ];
 
     $form['global']['fieldset']['receipt_availibility'] = [
@@ -217,12 +225,6 @@ class SettingsForm extends ConfigFormBase {
     $environments = $this->getEnvironments();
 
     foreach ($forms as $form_id) {
-      foreach ($environments as $environment) {
-        $config->set($form_id . '_' . $environment . '_profile', $form_state->getValue($form_id . '_' . $environment . '_profile', ''));
-        $config->set($form_id . '_' . $environment . '_access_key', $form_state->getValue($form_id . '_' . $environment . '_access_key', ''));
-        $config->set($form_id . '_' . $environment . '_secret_key', $form_state->getValue($form_id . '_' . $environment . '_secret_key', ''));
-      }
-
       $config->set($form_id . '_environment', $form_state->getValue($form_id . '_environment', ''));
 
       if ($this->forms[$form_id]['webform'] === TRUE) {
@@ -254,6 +256,7 @@ class SettingsForm extends ConfigFormBase {
         ],
       ],
       'receipt_availibility' => $form_state->getValue('receipt_availibility', $global['receipt_availibility'] ?? 7),
+      'receipt_sender' => $form_state->getValue('receipt_sender', $global['receipt_sender'] ?? ''),
     ]);
 
     $config->save();
