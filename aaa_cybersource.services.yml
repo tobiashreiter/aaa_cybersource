@@ -5,9 +5,9 @@ services:
   aaa_cybersource.recurring_payment:
     class: Drupal\aaa_cybersource\RecurringPayment
     arguments: ['@config.factory', '@logger.factory','@entity_type.manager', '@aaa_cybersource.cybersource_client', '@aaa_cybersource.mailer', '@aaa_cybersource.receipts']
-  aaa_cybersource.receipts:
-    class: Drupal\aaa_cybersource\Receipts
-    arguments: ['@config.factory', '@date.formatter']
   aaa_cybersource.mailer:
     class: Drupal\aaa_cybersource\Mailer
     arguments: ['@config.factory', '@plugin.manager.mail', '@webform.token_manager', '@language_manager', '@logger.factory']
+  aaa_cybersource.receipts:
+    class: Drupal\aaa_cybersource\Receipts
+    arguments: ['@config.factory', '@date.formatter', '@logger.factory', '@aaa_cybersource.mailer', '@aaa_cybersource.cybersource_client']

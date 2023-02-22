@@ -353,6 +353,26 @@ class DonationWebformHandler extends WebformHandlerBase {
     $data['payment_id'] = $payResponse[0]['id'];
     $submitted = $payResponse[0]['submitTimeUtc'];
     $status = $payResponse[0]['status'];
+    $declined = FALSE;
+
+    switch ($status) {
+      case 'DECLINED':
+        $form_state->setError($form['elements']['payment_details'], 'Your payment request was declined.');
+        $context = [
+          '@message' => $payResponse[0]->getErrorInformation()->getMessage(),
+        ];
+        $this->loggerFactory->warning('Payment declined. @message', $context);
+        $declined = TRUE;
+        break;
+
+      case 'INVALID_REQUEST':
+        $form_state->setError($form['elements']['payment_details'], 'Your payment request was invalid.');
+        $declined = TRUE;
+        break;
+
+      default:
+        // Nothing.
+    }
 
     $payment = Payment::create([]);
     $payment->set('code', $data['code']);
@@ -365,7 +385,7 @@ class DonationWebformHandler extends WebformHandlerBase {
     $payment->set('environment', $environment);
     $payment->set('recurring_active', FALSE);
 
-    if ($isRecurring === TRUE) {
+    if ($isRecurring === TRUE && $declined !== TRUE) {
       $tokens = $payResponse[0]->getTokenInformation();
       $customer = $tokens->getCustomer();
       $payment->set('customer_id', $customer->getId());
@@ -374,24 +394,13 @@ class DonationWebformHandler extends WebformHandlerBase {
       $payment->set('recurring_next', aaa_cybersource_get_next_recurring_payment_date($submittedTime));
     }
 
-    $payment->save();
+    if ($declined !== TRUE) {
+      $payment->save();
+    }
 
     $data['payment_entity'] = $payment->id();
     $form_state->setValue('payment_entity', $payment->id());
     $data['status'] = $status;
-
-    switch ($status) {
-      case 'DECLINED':
-        $form_state->setError($form['elements']['payment_details'], 'Your payment request was declined.');
-        break;
-
-      case 'INVALID_REQUEST':
-        $form_state->setError($form['elements']['payment_details'], 'Your payment request was invalid.');
-        break;
-
-      default:
-        // Nothing.
-    }
 
     $webform_submission->setData($data);
   }
@@ -422,21 +431,11 @@ class DonationWebformHandler extends WebformHandlerBase {
       // @todo needs to be queued if failure.
       sleep(5);
 
+      $data = $webform_submission->getData();
+      $payment = $this->entityRepository->getActive('payment', $data['payment_entity']);
       $key = $this->getWebform()->id() . '_' . $this->getHandlerId();
       $to = $this->replaceTokens('[webform_submission:values:email]', $webform_submission, [], []);
-      $body = $this->buildReceiptBody($webform_submission);
-      $subject = $this->receiptHandler->getSubject();
-      $result = $this->mailer->sendMail($key, $to, $subject, $body);
-
-      if ($result['send'] === TRUE) {
-        $context = [
-          '@form' => $this->getWebform()->label(),
-          '@title' => $this->label(),
-          'link' => $this->getWebform()->toLink($this->t('Edit'), 'handlers')->toString(),
-        ];
-
-        $this->loggerFactory->info('@form webform sent @title email.', $context);
-      }
+      $this->receiptHandler->sendReceipt($this->cybersourceClient, $payment, $key, $to);
     }
   }
 
@@ -550,25 +549,6 @@ class DonationWebformHandler extends WebformHandlerBase {
     else {
       return $prefix;
     }
-  }
-
-  /**
-   * Build the email body for the receipt.
-   *
-   * @param WebformSubmissionInterface $webform_submission
-   * @return string
-   */
-  private function buildReceiptBody($webform_submission) {
-    $data = $webform_submission->getData();
-    $payment = $this->entityRepository->getActive('payment', $data['payment_entity']);
-    $payment_id = $payment->get('payment_id')->value;
-    $transaction = $this->cybersourceClient->getTransaction($payment_id);
-    $billTo = $transaction[0]->getOrderInformation()->getBillTo();
-    $paymentInformation = $transaction[0]->getPaymentInformation();
-    $amountDetails = $transaction[0]->getOrderInformation()->getAmountDetails();
-    $datetime = $transaction[0]->getSubmitTimeUTC();
-
-    return $this->receiptHandler->buildReceiptEmailBody($payment, $billTo, $paymentInformation, $amountDetails, $datetime);
   }
 
 }

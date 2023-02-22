@@ -591,7 +591,7 @@ class CybersourceClient {
       print_r($e->getResponseBody());
       print_r($e->getMessage());
 
-      return [];
+      return $e;
     }
 
     return $transaction;

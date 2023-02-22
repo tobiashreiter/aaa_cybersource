@@ -220,10 +220,7 @@ class RecurringPayment {
     if (($payment->get('recurring_payments')->count() + 1) < $recurring_payments_max) {
       // Set the next recurring payment date time.
       $lastRecurringPayment = $newPayment->get('created')->value;
-      $nextRecurringTime = aaa_cybersource_get_next_recurring_payment_date($lastRecurringPayment);
-      $format = 'Y-m-d\TH:i:s';
-      $nextRecurringDateTimeFormat = date($this->dateTimeFormat, $nextRecurringTime);
-      $payment->set('recurring_next', $nextRecurringDateTimeFormat);
+      $payment->set('recurring_next', aaa_cybersource_get_next_recurring_payment_date($lastRecurringPayment));
     }
     else {
       // Disable active recurring flag when the number of recurring payments meets the maximum.
@@ -237,27 +234,8 @@ class RecurringPayment {
     sleep(5);
 
     // Create and send receipt.
-    $transaction = $this->cybersourceClient->getTransaction($newPaymentId);
-    $key = $payment->id() . '_recurring_payment_handler_cron';
-    $subject = $this->receiptHandler->getSubject();
-    $transaction = $this->cybersourceClient->getTransaction($payment_id);
-    $billTo = $transaction[0]->getOrderInformation()->getBillTo();
-    $to = $billTo->getEmail();
-    $paymentInformation = $transaction[0]->getPaymentInformation();
-    $amountDetails = $transaction[0]->getOrderInformation()->getAmountDetails();
-    $datetime = $transaction[0]->getSubmitTimeUTC();
-
-    $body = $this->receiptHandler->buildReceiptEmailBody($newPayment, $billTo, $paymentInformation, $amountDetails, $datetime);
-    $result = $this->mailer->sendMail($key, $to, $subject, $body);
-
-    if ($result['send'] === TRUE) {
-      $context = [
-        '@code' => $payment->get('code')->value,
-        'link' => $payment->toLink('View', 'canonical')->toString(),
-      ];
-
-      $this->logger->info('Recurring donation cron sent receipt email for @code recurring transaction.', $context);
-    }
+    $key = 'rpayment_id_' . $payment->id() . '_recurring';
+    $this->receiptHandler->sendReceipt($this->cybersourceClient, $newPayment, $key);
 
     return TRUE;
   }

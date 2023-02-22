@@ -252,11 +252,14 @@ function aaa_cybersource_cron() {
  * @param int $timestamp
  *   Current timestamp.
  *
- * @return int
- *   the next recurring timestamp.
+ * @return string
+ *   the next recurring date time string for database storage.
  */
 function aaa_cybersource_get_next_recurring_payment_date(int $timestamp) {
-  return strtotime('+1 month', $timestamp);
+  $nextRecurringTime = strtotime('+1 month', $timestamp);
+  $format = 'Y-m-d\TH:i:s';
+  $nextRecurringDateTimeFormat = date($format, $nextRecurringTime);
+  return $nextRecurringDateTimeFormat;
 }
 
 /**

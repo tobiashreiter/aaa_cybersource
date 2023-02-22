@@ -4,6 +4,7 @@ namespace Drupal\aaa_cybersource;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Datetime\DateFormatterInterface;
+use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\aaa_cybersource\Entity\Payment;
 
 /**
@@ -28,16 +29,42 @@ class Receipts {
   protected $dateFormatter;
 
   /**
+   * Logger Factory Interface.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelFactory
+   */
+  protected $loggerFactory;
+
+  /**
+   * Mailer.
+   *
+   * @var \Drupal\aaa_cybersource\Mailer
+   */
+  protected $mailer;
+
+  /**
+   * The cybersource client.
+   *
+   * @var \Drupal\aaa_cybersource\CybersourceClient
+   */
+  protected $cybersourceClient;
+
+  /**
    * Constructs a new Receipt object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The configuration factory.
    * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
    *   Date formatter functions.
+   * @param \Drupal\Core\Logger\LoggerChannelFactory $logger_factory
+   *   Logging in drupal.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, DateFormatterInterface $date_formatter) {
+  public function __construct(ConfigFactoryInterface $config_factory, DateFormatterInterface $date_formatter, LoggerChannelFactory $logger_factory, Mailer $mailer, CybersourceClient $client) {
     $this->configFactory = $config_factory;
     $this->dateFormatter = $date_formatter;
+    $this->loggerFactory = $logger_factory->get('aaa_cybersource');
+    $this->mailer = $mailer;
+    $this->cybersourceClient = $client;
   }
 
   /**
@@ -332,6 +359,49 @@ class Receipts {
       ";
 
     return $body;
+  }
+
+  /**
+   * Given payment information and the receipient, send a receipt.
+   *
+   * @param CybersourceClient $client
+   * @param string            $key
+   * @param string            $to
+   * @param Payment           $payment
+   *
+   * @return bool
+   */
+  public function sendReceipt(CybersourceClient $client, Payment $payment, $key = 'receipt', $to = NULL) {
+    $payment_id = $payment->get('payment_id')->value;
+    $transaction = $client->getTransaction($payment_id);
+
+    // @todo this is where receipt should be queued.
+    if (is_array($transaction) === FALSE && get_class($transaction) === 'CyberSource\ApiException') {
+      return FALSE;
+    }
+
+    $billTo = $transaction[0]->getOrderInformation()->getBillTo();
+    $paymentInformation = $transaction[0]->getPaymentInformation();
+    $amountDetails = $transaction[0]->getOrderInformation()->getAmountDetails();
+    $datetime = $transaction[0]->getSubmitTimeUTC();
+    $body = $this->buildReceiptEmailBody($payment, $billTo, $paymentInformation, $amountDetails, $datetime);
+    $subject = $this->getSubject();
+
+    if (is_null($to) === TRUE) {
+      $to = $billTo->getEmail();
+    }
+
+    $result = $this->mailer->sendMail($key, $to, $subject, $body);
+
+    if ($result['send'] === TRUE) {
+      $context = [
+        '@code' => $payment->get('code')->value,
+        'link' => $payment->toLink('View', 'canonical')->toString(),
+      ];
+      $this->loggerFactory->info('Payment code @code receipt emailed.', $context);
+    }
+
+    return $result['send'];
   }
 
   /**
