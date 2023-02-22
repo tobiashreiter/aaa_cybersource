@@ -247,6 +247,19 @@ function aaa_cybersource_cron() {
 }
 
 /**
+ * Create the next recurring time. +1 month.
+ *
+ * @param int $timestamp
+ *   Current timestamp.
+ *
+ * @return int
+ *   the next recurring timestamp.
+ */
+function aaa_cybersource_get_next_recurring_payment_date(int $timestamp) {
+  return strtotime('+1 month', $timestamp);
+}
+
+/**
  * Takes CyberSource code and returns the human-string card type.
  *
  * @param string $code

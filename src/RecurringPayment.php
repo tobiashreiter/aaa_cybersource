@@ -220,7 +220,7 @@ class RecurringPayment {
     if (($payment->get('recurring_payments')->count() + 1) < $recurring_payments_max) {
       // Set the next recurring payment date time.
       $lastRecurringPayment = $newPayment->get('created')->value;
-      $nextRecurringTime = $this->getNextRecurringTime($lastRecurringPayment);
+      $nextRecurringTime = aaa_cybersource_get_next_recurring_payment_date($lastRecurringPayment);
       $format = 'Y-m-d\TH:i:s';
       $nextRecurringDateTimeFormat = date($this->dateTimeFormat, $nextRecurringTime);
       $payment->set('recurring_next', $nextRecurringDateTimeFormat);
@@ -233,6 +233,7 @@ class RecurringPayment {
     $payment->save();
 
     // Give platform time to process.
+    // @todo needs to be queued if failure.
     sleep(5);
 
     // Create and send receipt.
@@ -259,19 +260,6 @@ class RecurringPayment {
     }
 
     return TRUE;
-  }
-
-  /**
-   * Create the next recurring time. +1 month.
-   *
-   * @param int $timestamp
-   *   Current timestamp.
-   *
-   * @return int
-   *   the next recurring timestamp.
-   */
-  protected function getNextRecurringTime(int $timestamp) {
-    return strtotime('+1 month', $timestamp);
   }
 
 }

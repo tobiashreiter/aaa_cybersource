@@ -370,6 +370,8 @@ class DonationWebformHandler extends WebformHandlerBase {
       $customer = $tokens->getCustomer();
       $payment->set('customer_id', $customer->getId());
       $payment->set('recurring_active', TRUE);
+      $submittedTime = strtotime($submitted);
+      $payment->set('recurring_next', aaa_cybersource_get_next_recurring_payment_date($submittedTime));
     }
 
     $payment->save();
@@ -417,6 +419,7 @@ class DonationWebformHandler extends WebformHandlerBase {
   public function postSave(WebformSubmissionInterface $webform_submission, $update = TRUE) {
     if ($this->configuration['email_receipt'] === TRUE) {
       // Cybersource needs a few seconds before the receipt can be accessed.
+      // @todo needs to be queued if failure.
       sleep(5);
 
       $key = $this->getWebform()->id() . '_' . $this->getHandlerId();

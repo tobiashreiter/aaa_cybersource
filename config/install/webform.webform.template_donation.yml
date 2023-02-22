@@ -206,9 +206,12 @@ elements: |-
       '#select2': true
       '#required': true
       '#required_error': 'Enter a valid expiry date'
+    recaptcha:
+      '#type': captcha
+      '#captcha_type': recaptcha/reCAPTCHA
     actions_01:
       '#type': webform_actions
-      '#title': 'Make Payment'
+      '#title': 'Submit Payment'
       '#submit__label': 'Make Payment'
   payment_entity:
     '#type': entity_autocomplete
@@ -227,6 +230,12 @@ elements: |-
   environment:
     '#type': hidden
     '#title': Environment
+  privacy_statement:
+    '#type': webform_markup
+    '#markup': |-
+      <div style="margin-top:1rem;">
+            <p><span class="highlight">We use CyberSource, a third-party e-payment service. Their <a href="https://www.cybersource.com/privacy/" target="_blank">Privacy Statement</a> applies to your use of this service.</span></p>
+          </div>
   actions:
     '#type': webform_actions
     '#title': 'Submit button(s)'
