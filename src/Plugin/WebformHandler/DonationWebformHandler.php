@@ -417,6 +417,7 @@ class DonationWebformHandler extends WebformHandlerBase {
     // Unset PII and payment information.
     // It is now kept in tokens on the Payment Processor.
     unset($data['name']);
+    unset($data['company']);
     unset($data['address']);
     unset($data['phone']);
     unset($data['card_type']);
