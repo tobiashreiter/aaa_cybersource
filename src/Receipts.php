@@ -5,6 +5,8 @@ namespace Drupal\aaa_cybersource;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Logger\LoggerChannelFactory;
+use Drupal\Core\Database\Connection;
+use Drupal\Core\Queue\QueueFactory;
 use Drupal\aaa_cybersource\Entity\Payment;
 
 /**
@@ -36,6 +38,13 @@ class Receipts {
   protected $loggerFactory;
 
   /**
+   * Queue.
+   * 
+   * @var \Drupal\Core\Queue\QueueFactory
+   */
+  protected $queue;
+
+  /**
    * Mailer.
    *
    * @var \Drupal\aaa_cybersource\Mailer
@@ -50,6 +59,13 @@ class Receipts {
   protected $cybersourceClient;
 
   /**
+   * Database connection.
+   *
+   * @var \Drupal\Core\Database\Connection;
+   */
+  protected $connection;
+
+  /**
    * Constructs a new Receipt object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -59,10 +75,12 @@ class Receipts {
    * @param \Drupal\Core\Logger\LoggerChannelFactory $logger_factory
    *   Logging in drupal.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, DateFormatterInterface $date_formatter, LoggerChannelFactory $logger_factory, Mailer $mailer, CybersourceClient $client) {
+  public function __construct(ConfigFactoryInterface $config_factory, DateFormatterInterface $date_formatter, LoggerChannelFactory $logger_factory, Connection $connection, QueueFactory $queue, Mailer $mailer, CybersourceClient $client) {
     $this->configFactory = $config_factory;
     $this->dateFormatter = $date_formatter;
     $this->loggerFactory = $logger_factory->get('aaa_cybersource');
+    $this->connection = $connection;
+    $this->queue = $queue;
     $this->mailer = $mailer;
     $this->cybersourceClient = $client;
   }
@@ -89,7 +107,6 @@ class Receipts {
    *   Build array.
    */
   public function buildReceiptElements(Payment $payment, array $transaction) {
-    $payment_id = $payment->get('payment_id')->value;
     $billTo = $transaction[0]->getOrderInformation()->getBillTo();
     $paymentInformation = $transaction[0]->getPaymentInformation();
     $card = $paymentInformation->getCard();
@@ -311,6 +328,18 @@ class Receipts {
    * @return string
    *   Body text of the receipt.
    */
+  /**
+   * Build an email body. This is the email template.
+   *
+   * @param Drupal\aaa_cybersource\Entity\Payment $payment
+   *   Payment entity.
+   * @param [type]  $billTo
+   * @param [type]  $paymentInformation
+   * @param [type]  $amountDetails
+   * @param [type]  $datetime
+   *
+   * @return string $body
+   */
   public function buildReceiptEmailBody(Payment $payment, $billTo, $paymentInformation, $amountDetails, $datetime) {
     $card = $paymentInformation->getCard();
     $amount = strpos($amountDetails->getAuthorizedAmount(), '.') > 0 ? $amountDetails->getAuthorizedAmount() : $amountDetails->getAuthorizedAmount() . '.00';
@@ -371,15 +400,7 @@ class Receipts {
    *
    * @return bool
    */
-  public function sendReceipt(CybersourceClient $client, Payment $payment, $key = 'receipt', $to = NULL) {
-    $payment_id = $payment->get('payment_id')->value;
-    $transaction = $client->getTransaction($payment_id);
-
-    // @todo this is where receipt should be queued.
-    if (is_array($transaction) === FALSE && get_class($transaction) === 'CyberSource\ApiException') {
-      return FALSE;
-    }
-
+  protected function sendReceipt(Payment $payment, $transaction, $key = 'receipt', $to = NULL) {
     $billTo = $transaction[0]->getOrderInformation()->getBillTo();
     $paymentInformation = $transaction[0]->getPaymentInformation();
     $amountDetails = $transaction[0]->getOrderInformation()->getAmountDetails();
@@ -402,6 +423,94 @@ class Receipts {
     }
 
     return $result['send'];
+  }
+
+  /**
+   * Attempt to send a receipt.
+   *
+   * If the transaction isn't available send a copy of it to the queue.
+   *
+   * @param CybersourceClient $client
+   * @param Payment $payment
+   * @param string $key
+   * @param string|null $to
+   *
+   * @return bool
+   *   Returns send status.
+   */
+  public function trySendReceipt(CybersourceClient $client, Payment $payment, $key = 'receipt', $to = NULL) {
+    $paymentId = $payment->get('payment_id')->value;
+    $transaction = $client->getTransaction($paymentId);
+
+    // If there is an exception, queue this to send next cron.
+    if (is_array($transaction) === FALSE && get_class($transaction) === 'CyberSource\ApiException') {
+      $environment = $client->getEnvironment();
+      $pid = $payment->id();
+
+      if ($this->isPaymentInQueue($pid) !== TRUE) {
+        $this->sendToQueue($environment, $pid, $key, $to);
+      }
+
+      return FALSE;
+    }
+
+    $sent = $this->sendReceipt($payment, $transaction, $key, $to);
+
+    // If sending failed, queue this for later.
+    if ($sent !== TRUE) {
+      $environment = $client->getEnvironment();
+      $pid = $payment->id();
+
+      if ($this->isPaymentInQueue($pid) !== TRUE) {
+        $this->sendToQueue($environment, $pid, $key, $to);
+      }
+    }
+
+    return $sent;
+  }
+
+  /**
+   * Send receipt email data to the queue.
+   *
+   * @param string $environment
+   * @param int|string $payment_entity_id
+   * @param string $to
+   * @param string $key
+   */
+  protected function sendToQueue($environment, $payment_entity_id, $key, $to) {
+    $queue = $this->queue->get('receipt_queue');
+
+    $queueItem = new \stdClass();
+    $queueItem->environment = $environment;
+    $queueItem->pid = (int) $payment_entity_id;
+    $queueItem->key = $key;
+    $queueItem->to = $to;
+
+    $queue->createItem($queueItem);
+  }
+
+  /**
+   * Check queue for existing record.
+   *
+   * @param integer $pid
+   *
+   * @return bool
+   */
+  protected function isPaymentInQueue(int $pid) {
+    $queued = $this->connection->select('queue', 'q', [])
+      ->condition('q.name', 'receipt_queue', '=')
+      ->fields('q', ['name', 'data', 'item_id'])
+      ->execute();
+
+    foreach ($queued as $item) {
+      $data = unserialize($item->data);
+
+      if (is_numeric($data->pid) === TRUE && $pid == $data->pid) {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
   }
 
   /**

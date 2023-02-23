@@ -267,7 +267,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * Find and return the jwt cert file given the environment.
    *
-   * @param FormStateInterface $form_state
+   * @param Drupal\Core\Form\FormStateInterface $form_state
    *   Form State.
    * @param array $global
    *   The global settings array.
@@ -295,6 +295,7 @@ class SettingsForm extends ConfigFormBase {
    * The Cybersource environments.
    *
    * @return array
+   *   Environment.s
    */
   private function getEnvironments() {
     return ['production', 'development'];
@@ -304,6 +305,7 @@ class SettingsForm extends ConfigFormBase {
    * Keys which refer to Cybersource forms on the site.
    *
    * @return array
+   *   An array of form ids.
    */
   private function getFormsIds() {
     return array_keys($this->forms);
@@ -313,8 +315,10 @@ class SettingsForm extends ConfigFormBase {
    * Titles of the Cybersource forms.
    *
    * @param string $key
+   *   Form key (id).
    *
    * @return string
+   *   Title.
    */
   private function getFormTitle($key) {
     return $this->forms[$key]['title'];
@@ -324,8 +328,10 @@ class SettingsForm extends ConfigFormBase {
    * Helpful descriptions of the Cybersource forms.
    *
    * @param string $key
+   *   Form key (id).
    *
    * @return string
+   *   Description.
    */
   private function getFormDescription($key) {
     return $this->forms[$key]['description'];

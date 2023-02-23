@@ -35,21 +35,29 @@ class DonationWebformHandler extends WebformHandlerBase {
   protected $loggerFactory;
 
   /**
+   * Config Factory Interface.
+   *
    * @var ConfigFactoryInterface
    */
   protected $configFactory;
 
   /**
+   * Conditions validator for webforms.
+   *
    * @var WebformSubmissionConditionsValidatorInterface
    */
   protected $conditionsValidator;
 
   /**
+   * Entity type manager.
+   *
    * @var EntityTypeManagerInterface
    */
   protected $entityTypeManager;
 
   /**
+   * Entity repository.
+   *
    * @var EntityRepository
    */
   protected $entityRepository;
@@ -111,15 +119,7 @@ class DonationWebformHandler extends WebformHandlerBase {
   protected $mailer;
 
   /**
-   * Create this container handler.
-   *
-   * @param ContainerInterface $container
-   * @param array $configuration
-   * @param string $plugin_id
-   * @param mixed $plugin_definition
-   *
-   * @return mixed
-   *   This handler instance.
+   * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
@@ -197,7 +197,9 @@ class DonationWebformHandler extends WebformHandlerBase {
    * Checks for form elements and if they exist remove them from check list.
    *
    * @param array $check
+   *   Array of field names to check.
    * @param array $formElements
+   *   All elements in the webform submission form to check against.
    */
   private function necessaryFieldCheck(array &$check, array $formElements) {
     foreach ($formElements as $element_name => $element) {
@@ -428,14 +430,13 @@ class DonationWebformHandler extends WebformHandlerBase {
   public function postSave(WebformSubmissionInterface $webform_submission, $update = TRUE) {
     if ($this->configuration['email_receipt'] === TRUE) {
       // Cybersource needs a few seconds before the receipt can be accessed.
-      // @todo needs to be queued if failure.
       sleep(5);
 
       $data = $webform_submission->getData();
       $payment = $this->entityRepository->getActive('payment', $data['payment_entity']);
       $key = $this->getWebform()->id() . '_' . $this->getHandlerId();
       $to = $this->replaceTokens('[webform_submission:values:email]', $webform_submission, [], []);
-      $this->receiptHandler->sendReceipt($this->cybersourceClient, $payment, $key, $to);
+      $this->receiptHandler->trySendReceipt($this->cybersourceClient, $payment, $key, $to);
     }
   }
 

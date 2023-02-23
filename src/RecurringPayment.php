@@ -223,19 +223,21 @@ class RecurringPayment {
       $payment->set('recurring_next', aaa_cybersource_get_next_recurring_payment_date($lastRecurringPayment));
     }
     else {
-      // Disable active recurring flag when the number of recurring payments meets the maximum.
+      /*
+       * Disable active recurring flag when the number of recurring payments
+       * meets the maximum.
+       */
       $payment->set('recurring_active', FALSE);
     }
 
     $payment->save();
 
     // Give platform time to process.
-    // @todo needs to be queued if failure.
     sleep(5);
 
     // Create and send receipt.
     $key = 'rpayment_id_' . $payment->id() . '_recurring';
-    $this->receiptHandler->sendReceipt($this->cybersourceClient, $newPayment, $key);
+    $this->receiptHandler->trySendReceipt($this->cybersourceClient, $newPayment, $key);
 
     return TRUE;
   }
