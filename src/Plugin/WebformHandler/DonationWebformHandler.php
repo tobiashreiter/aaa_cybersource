@@ -414,9 +414,12 @@ class DonationWebformHandler extends WebformHandlerBase {
     // Store the final data.
     $data = $webform_submission->getData();
 
-    // Unset PII. It is now kept in Tokens on Payment Processor.
+    // Unset PII and payment information.
+    // It is now kept in tokens on the Payment Processor.
     unset($data['name']);
     unset($data['address']);
+    unset($data['phone']);
+    unset($data['card_type']);
     unset($data['expiration_month']);
     unset($data['expiration_year']);
     unset($data['microform_container']);
