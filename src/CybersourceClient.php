@@ -588,13 +588,29 @@ class CybersourceClient {
       $transaction = $transactionDetails->getTransactionWithHttpInfo($id);
     }
     catch (ApiException $e) {
-      print_r($e->getResponseBody());
-      print_r($e->getMessage());
-
       return $e;
     }
 
     return $transaction;
+  }
+
+  /**
+   * Return a payment request object.
+   *
+   * @param string $id
+   *   The transaction id.
+   *
+   * @return mixed
+   */
+  public function getTransactionStatus($id) {
+    $transaction = $this->getTransaction($id);
+
+    if (is_array($transaction) === FALSE && get_class($transaction) === 'CyberSource\ApiException') {
+      $this->logger->get('aaa_cybersource')->warning('Cybersource API Error.');
+      return 0;
+    }
+
+    return (int) $transaction[0]->getApplicationInformation()->getReasonCode();
   }
 
   /**

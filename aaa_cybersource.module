@@ -246,6 +246,12 @@ function aaa_cybersource_cron() {
   }
 }
 
+function aaa_cybersource_webform_element_alter(array &$element, \Drupal\Core\Form\FormStateInterface $form_state, array $context) {
+  if ($element['#type'] === 'webform_table' && $element['#webform_key'] === 'gala') {
+    $element['#attached']['library'][] = 'aaa_cybersource/gala-table';
+  }
+}
+
 /**
  * Create the next recurring time. +1 month.
  *

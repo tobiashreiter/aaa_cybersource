@@ -1,0 +1,485 @@
+uuid: null
+langcode: en
+status: closed
+dependencies:
+  module:
+    - aaa_cybersource
+weight: 0
+open: null
+close: null
+uid: 1
+template: true
+archive: false
+id: template_gala
+title: Gala
+description: 'Donation form for AAA Galas. Contains a ticket table that calculates the total amount.'
+category: Cybersource
+elements: |-
+  tickets:
+    '#type': details
+    '#title': 'Tickets'
+    gala:
+      '#type': webform_table
+      '#title': 'Gala Tables and Tickets'
+      '#title_display': none
+      '#header':
+        - title: Quantity
+          attributes: {  }
+        - title: 'Ticket Level'
+          attributes: {  }
+        - title: Amount
+          attributes: {  }
+      gala_01:
+        '#type': webform_table_row
+        '#title': Benefactor
+        gala_01_quantity:
+          '#type': number
+          '#title': 'Quanity Benefactor'
+          '#title_display': none
+          '#attributes':
+            data-amount: 25000
+          '#min': 0
+        gala_01_ticket_level:
+          '#type': webform_markup
+          '#markup': 'Benefactor Table'
+        gala_01_amount:
+          '#type': webform_markup
+          '#markup': '$25,000'
+      gala_02:
+        '#type': webform_table_row
+        '#title': Patron
+        gala_02_quantity:
+          '#type': number
+          '#title': 'Quantity Patron'
+          '#title_display': none
+          '#attributes':
+            data-amount: 15000
+          '#min': 0
+        gala_02_ticket_level:
+          '#type': webform_markup
+          '#markup': 'Patron Table'
+        gala_02_amount:
+          '#type': webform_markup
+          '#markup': '$15,000'
+      gala_03:
+        '#type': webform_table_row
+        '#title': Partner
+        gala_03_quantity:
+          '#type': number
+          '#title': 'Quantity Partner'
+          '#title_display': none
+          '#attributes':
+            data-amount: 10000
+          '#min': 0
+        gala_03_ticket_level:
+          '#type': webform_markup
+          '#markup': 'Partner Table'
+        gala_03_amount:
+          '#type': webform_markup
+          '#markup': '$10,000'
+      gala_04:
+        '#type': webform_table_row
+        '#title': Advocate
+        gala_04_quantity:
+          '#type': number
+          '#title': 'Quantity Advocate'
+          '#title_display': none
+          '#attributes':
+            data-amount: 3000
+          '#min': 0
+        gala_04_ticket_level:
+          '#type': webform_markup
+          '#markup': 'Advocate Table'
+        gala_04_amount:
+          '#type': webform_markup
+          '#markup': '$3,000'
+      gala_05:
+        '#type': webform_table_row
+        '#title': Friend
+        gala_05_quantity:
+          '#type': number
+          '#title': 'Quantity Friend'
+          '#title_display': none
+          '#attributes':
+            data-amount: 2000
+          '#min': 0
+        gala_05_ticket_level:
+          '#type': webform_markup
+          '#markup': 'Friend Table'
+        gala_05_amount:
+          '#type': webform_markup
+          '#markup': '$2,000'
+      gala_06:
+        '#type': webform_table_row
+        '#title': Supporter
+        gala_06_quantity:
+          '#type': number
+          '#title': 'Quantity Supporter'
+          '#title_display': none
+          '#attributes':
+            data-amount: 1000
+          '#min': 0
+        gala_06_ticket_level:
+          '#type': webform_markup
+          '#markup': 'Supporter Table'
+        gala_06_amount:
+          '#type': webform_markup
+          '#markup': '$1,000'
+    amount:
+      '#type': textfield
+      '#title': 'Total Amount'
+      '#field_prefix': $
+    gala_name:
+      '#type': textfield
+      '#title': 'Please list your name as you would like to be recognized in Gala materials:'
+  billing_information:
+    '#type': details
+    '#title': 'Billing Information'
+    name:
+      '#type': webform_name
+      '#title': Name
+      '#required': true
+      '#title__access': false
+      '#first__title': 'First Name'
+      '#first__required': true
+      '#middle__access': false
+      '#last__title': 'Last Name'
+      '#last__required': true
+      '#suffix__access': false
+      '#degree__access': false
+    company:
+      '#type': textfield
+      '#title': 'Company Name'
+    address:
+      '#type': webform_address
+      '#title': Address
+      '#required': true
+      '#address__title': 'Address Line 1'
+      '#address__required': true
+      '#address_2__title': 'Address Line 2'
+      '#city__required': true
+      '#state_province__required': true
+      '#state_province__options': state_province_codes
+      '#postal_code__required': true
+      '#country__title': Country/Region
+      '#country__required': true
+      '#country__options': country_codes
+    phone:
+      '#type': tel
+      '#title': Phone
+      '#required': true
+    email:
+      '#type': email
+      '#title': Email
+      '#required': true
+  payment_details:
+    '#type': details
+    '#title': 'Payment Details'
+    card_type:
+      '#type': radios
+      '#title': 'Card Type'
+      '#options':
+        visa: Visa
+        mastercard: Mastercard
+        'american express': 'American Express'
+        discover: Discover
+      '#options_display': buttons
+      '#required': true
+      '#required_error': 'Specify your card type.'
+      '#states_clear': false
+    microform_container:
+      '#type': webform_microform_element
+      '#title': 'Cybersource Microform'
+    expiration_month:
+      '#type': select
+      '#title': 'Expiration Month'
+      '#options':
+        1: '1'
+        2: '2'
+        3: '3'
+        4: '4'
+        5: '5'
+        6: '6'
+        7: '7'
+        8: '8'
+        9: '9'
+        10: '10'
+        11: '11'
+        12: '12'
+      '#empty_option': Month
+      '#select2': true
+      '#required': true
+      '#required_error': 'Enter a valid expiry date'
+    expiration_year:
+      '#type': select
+      '#title': 'Expiration Year'
+      '#options':
+        2022: '2022'
+        2023: '2023'
+        2024: '2024'
+        2025: '2025'
+        2026: '2026'
+        2027: '2027'
+        2028: '2028'
+        2029: '2029'
+        2030: '2030'
+        2031: '2031'
+        2032: '2032'
+        2033: '2033'
+        2034: '2034'
+        2035: '2035'
+        2036: '2036'
+        2037: '2037'
+        2038: '2038'
+        2039: '2039'
+        2040: '2040'
+        2041: '2041'
+        2042: '2042'
+        2043: '2043'
+        2044: '2044'
+        2045: '2045'
+      '#select2': true
+      '#required': true
+      '#required_error': 'Enter a valid expiry date'
+    recaptcha:
+      '#type': captcha
+      '#captcha_type': recaptcha/reCAPTCHA
+    actions_01:
+      '#type': webform_actions
+      '#title': 'Submit Payment'
+      '#submit__label': 'Make Payment'
+  payment_entity:
+    '#type': entity_autocomplete
+    '#title': 'Payment Entity'
+    '#states':
+      invisible:
+        ':input[name="payment_entity"]':
+          empty: true
+    '#states_clear': false
+    '#access_update_roles':
+      - authenticated
+    '#access_view_roles':
+      - authenticated
+    '#target_type': payment
+    '#selection_handler': 'default:payment'
+  environment:
+    '#type': hidden
+    '#title': Environment
+  privacy_statement:
+    '#type': webform_markup
+    '#markup': |-
+      <div style="margin-top:1rem;">
+            <p><span class="highlight">We use CyberSource, a third-party e-payment service. Their <a href="https://www.cybersource.com/privacy/" target="_blank">Privacy Statement</a> applies to your use of this service.</span></p>
+          </div>
+  actions:
+    '#type': webform_actions
+    '#title': 'Submit button(s)'
+    '#submit_hide': true
+css: ''
+javascript: ''
+settings:
+  ajax: false
+  ajax_scroll_top: form
+  ajax_progress_type: ''
+  ajax_effect: ''
+  ajax_speed: null
+  page: true
+  page_submit_path: ''
+  page_confirm_path: ''
+  page_theme_name: ''
+  form_title: both
+  form_submit_once: false
+  form_open_message: ''
+  form_close_message: ''
+  form_exception_message: ''
+  form_previous_submissions: true
+  form_confidential: false
+  form_confidential_message: ''
+  form_disable_remote_addr: false
+  form_convert_anonymous: false
+  form_prepopulate: false
+  form_prepopulate_source_entity: false
+  form_prepopulate_source_entity_required: false
+  form_prepopulate_source_entity_type: ''
+  form_unsaved: false
+  form_disable_back: false
+  form_submit_back: false
+  form_disable_autocomplete: false
+  form_novalidate: false
+  form_disable_inline_errors: false
+  form_required: false
+  form_autofocus: false
+  form_details_toggle: false
+  form_reset: false
+  form_access_denied: default
+  form_access_denied_title: ''
+  form_access_denied_message: ''
+  form_access_denied_attributes: {  }
+  form_file_limit: ''
+  form_attributes:
+    class:
+      - webform-submission-form-template-donation
+  form_method: ''
+  form_action: ''
+  share: false
+  share_node: false
+  share_theme_name: ''
+  share_title: true
+  share_page_body_attributes: {  }
+  submission_label: ''
+  submission_exception_message: ''
+  submission_locked_message: ''
+  submission_log: false
+  submission_excluded_elements:
+    address: address
+    expiration_month: expiration_month
+    expiration_year: expiration_year
+    cvn: cvn
+  submission_exclude_empty: false
+  submission_exclude_empty_checkbox: false
+  submission_views: {  }
+  submission_views_replace: {  }
+  submission_user_columns: {  }
+  submission_user_duplicate: false
+  submission_access_denied: default
+  submission_access_denied_title: ''
+  submission_access_denied_message: ''
+  submission_access_denied_attributes: {  }
+  previous_submission_message: ''
+  previous_submissions_message: ''
+  autofill: false
+  autofill_message: ''
+  autofill_excluded_elements: {  }
+  wizard_progress_bar: true
+  wizard_progress_pages: false
+  wizard_progress_percentage: false
+  wizard_progress_link: false
+  wizard_progress_states: false
+  wizard_start_label: ''
+  wizard_preview_link: false
+  wizard_confirmation: true
+  wizard_confirmation_label: ''
+  wizard_auto_forward: true
+  wizard_auto_forward_hide_next_button: false
+  wizard_keyboard: true
+  wizard_track: ''
+  wizard_prev_button_label: ''
+  wizard_next_button_label: ''
+  wizard_toggle: false
+  wizard_toggle_show_label: ''
+  wizard_toggle_hide_label: ''
+  wizard_page_type: container
+  wizard_page_title_tag: h2
+  preview: 0
+  preview_label: ''
+  preview_title: ''
+  preview_message: ''
+  preview_attributes: {  }
+  preview_excluded_elements: {  }
+  preview_exclude_empty: true
+  preview_exclude_empty_checkbox: false
+  draft: none
+  draft_multiple: false
+  draft_auto_save: false
+  draft_saved_message: ''
+  draft_loaded_message: ''
+  draft_pending_single_message: ''
+  draft_pending_multiple_message: ''
+  confirmation_type: modal
+  confirmation_url: '[webform:url]/receipt'
+  confirmation_title: 'Thank you'
+  confirmation_message: 'Thank you very much for your donation. You may save a copy of a receipt for your records <a href="[webform:url]/receipt?token=[webform_submission:token]">here</a>.'
+  confirmation_attributes: {  }
+  confirmation_back: true
+  confirmation_back_label: ''
+  confirmation_back_attributes: {  }
+  confirmation_exclude_query: true
+  confirmation_exclude_token: false
+  confirmation_update: false
+  limit_total: null
+  limit_total_interval: null
+  limit_total_message: ''
+  limit_total_unique: false
+  limit_user: null
+  limit_user_interval: null
+  limit_user_message: ''
+  limit_user_unique: false
+  entity_limit_total: null
+  entity_limit_total_interval: null
+  entity_limit_user: null
+  entity_limit_user_interval: null
+  purge: none
+  purge_days: null
+  results_disabled: false
+  results_disabled_ignore: false
+  results_customize: false
+  token_view: false
+  token_update: false
+  token_delete: false
+  serial_disabled: false
+access:
+  create:
+    roles:
+      - anonymous
+      - authenticated
+    users: {  }
+    permissions: {  }
+  view_any:
+    roles: {  }
+    users: {  }
+    permissions:
+      - 'administer aaa_cybersource webform'
+      - 'view aaa_cybersource webform submission'
+  update_any:
+    roles: {  }
+    users: {  }
+    permissions:
+      - 'administer aaa_cybersource webform'
+  delete_any:
+    roles: {  }
+    users: {  }
+    permissions:
+      - 'administer aaa_cybersource webform'
+  purge_any:
+    roles: {  }
+    users: {  }
+    permissions:
+      - 'administer aaa_cybersource webform'
+  view_own:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  update_own:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  delete_own:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  administer:
+    roles: {  }
+    users: {  }
+    permissions:
+      - 'administer aaa_cybersource webform'
+  test:
+    roles: {  }
+    users: {  }
+    permissions: {  }
+  configuration:
+    roles: {  }
+    users: {  }
+    permissions:
+      - 'administer aaa_cybersource webform'
+handlers:
+  donation_webform_handler:
+    id: donation_webform_handler
+    handler_id: donation_webform_handler
+    label: 'Donation Webform Handler'
+    notes: ''
+    status: true
+    conditions: {  }
+    weight: 0
+    settings:
+      email_receipt: true
+variants: {  }

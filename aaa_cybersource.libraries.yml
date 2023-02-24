@@ -1,5 +1,5 @@
 flex:
-  version: 1.x-dev
+  version: 1.0.0
   js:
     js/flex.js: {}
   dependencies:
@@ -11,7 +11,14 @@ flex-microform:
   js:
     https://flex.cybersource.com/cybersource/assets/microform/0.11/flex-microform.min.js: { minified: true, external: true }
 
+gala-table:
+  version: 1.0.0
+  js:
+    js/gala-table.js: {}
+  dependencies:
+    - core/drupalSettings
+
 settingsForm:
-  version: 1.x-dev
+  version: 1.0.0
   js:
     js/settingsForm.js: {}

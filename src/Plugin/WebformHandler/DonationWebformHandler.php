@@ -242,13 +242,18 @@ class DonationWebformHandler extends WebformHandlerBase {
       'address',
       'phone',
       'email',
-      'direction',
     ];
+
+    $checkGala = ['gala'];
+    $this->necessaryFieldCheck($checkGala, $elements);
+    if (count($checkGala) > 0) {
+      $necessary_fields[] = 'direction';
+    }
 
     $this->necessaryFieldCheck($necessary_fields, $elements);
 
     if (count($necessary_fields) > 0) {
-      $form_state->setErrorByName('amount', 'Missing necessary fields for payment transaction. Payment transaction not processed. Contact adminstrator to update form configuration.');
+      $form_state->setErrorByName(array_pop($necessary_fields), 'Missing necessary fields for payment transaction. Payment transaction not processed. Contact adminstrator to update form configuration.');
     }
 
     // Check for any form errors, including those from parent classes.

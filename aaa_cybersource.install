@@ -11,16 +11,11 @@
 function aaa_cybersource_uninstall() {
   Drupal::configFactory()->getEditable('aaa_cybersource.settings')->delete();
 
-  $webform_id = 'template_donation';
-  $webform_entity = \Drupal::entityTypeManager()->getStorage('webform')->load($webform_id);
-  if (!is_null($webform_entity)) {
-    $webform_entity->delete();
+  $webform_ids = ['template_donation', 'template_gala'];
+  foreach ($webform_ids as $webform_id) {
+    $webform_entity = \Drupal::entityTypeManager()->getStorage('webform')->load($webform_id);
+    if (!is_null($webform_entity)) {
+      $webform_entity->delete();
+    }
   }
-}
-
-/**
- * Recurring donations.
- */
-function aaa_cybersource_update_9001() {
-
 }

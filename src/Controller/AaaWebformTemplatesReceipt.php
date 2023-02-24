@@ -153,6 +153,8 @@ class AaaWebformTemplatesReceipt extends ControllerBase {
     $payment = $this->entityRepository->getActive('payment', $data['payment_entity']);
     $transaction = $this->getTransactionFromPayment($payment);
 
+    $this->checkTransactionResponse($transaction);
+
     return $this->receiptHandler->buildReceiptElements($payment, $transaction);
   }
 
@@ -170,7 +172,21 @@ class AaaWebformTemplatesReceipt extends ControllerBase {
   public function paymentReceipt(Payment $payment = NULL, Request $request) {
     $transaction = $this->getTransactionFromPayment($payment);
 
+    $this->checkTransactionResponse($transaction);
+
     return $this->receiptHandler->buildReceiptElements($payment, $transaction);
+  }
+
+  /**
+   * Checks if the object is valid.
+   *
+   * @throws NotFoundException
+   */
+  protected function checkTransactionResponse(&$transaction) {
+    if (is_array($transaction) === FALSE && get_class($transaction) === 'CyberSource\ApiException') {
+      $this->logger->warning('Cybersource API Error.');
+      throw new NotFoundHttpException('Error finding transaction');
+    }
   }
 
   /**
