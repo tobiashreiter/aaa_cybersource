@@ -39,6 +39,7 @@ elements: |-
           '#attributes':
             data-amount: 25000
           '#min': 0
+          '#size': '3'
         gala_01_ticket_level:
           '#type': webform_markup
           '#markup': 'Benefactor Table'
@@ -55,6 +56,7 @@ elements: |-
           '#attributes':
             data-amount: 15000
           '#min': 0
+          '#size': '3'
         gala_02_ticket_level:
           '#type': webform_markup
           '#markup': 'Patron Table'
@@ -71,6 +73,7 @@ elements: |-
           '#attributes':
             data-amount: 10000
           '#min': 0
+          '#size': '3'
         gala_03_ticket_level:
           '#type': webform_markup
           '#markup': 'Partner Table'
@@ -87,6 +90,7 @@ elements: |-
           '#attributes':
             data-amount: 3000
           '#min': 0
+          '#size': '3'
         gala_04_ticket_level:
           '#type': webform_markup
           '#markup': 'Advocate Table'
@@ -103,6 +107,7 @@ elements: |-
           '#attributes':
             data-amount: 2000
           '#min': 0
+          '#size': '3'
         gala_05_ticket_level:
           '#type': webform_markup
           '#markup': 'Friend Table'
@@ -119,6 +124,7 @@ elements: |-
           '#attributes':
             data-amount: 1000
           '#min': 0
+          '#size': '3'
         gala_06_ticket_level:
           '#type': webform_markup
           '#markup': 'Supporter Table'
