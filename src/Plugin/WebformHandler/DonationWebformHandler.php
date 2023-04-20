@@ -430,6 +430,32 @@ class DonationWebformHandler extends WebformHandlerBase {
     unset($data['expiration_year']);
     unset($data['microform_container']);
 
+    // Add additional message to the confirmation.
+    if ($data['status'] === 'AUTHORIZED') {
+      $confirmationMessageId = 'confirmation_message';
+      $defaultConfirmationMessage = $this->webform->getSetting($confirmationMessageId, '');
+      $message = '<p>Your payment was authorized.<p>' . PHP_EOL . $defaultConfirmationMessage;
+
+      if ($this->configuration['email_receipt'] === TRUE) {
+        $message = $message . PHP_EOL . '<p>You will receive an email copy of your receipt.</p>';
+      }
+
+      $this->webform->setSetting($confirmationMessageId, $message);
+    }
+    // Cases when manager must review the payment.
+    elseif ($data['status'] === 'AUTHORIZED_PENDING_REVIEW') {
+      $confirmationMessageId = 'confirmation_message';
+      $defaultConfirmationMessage = $this->webform->getSetting($confirmationMessageId, '');
+
+      $message = '<p>Thank you. Your payment is authorized and pending review.</p>';
+
+      if ($this->configuration['email_receipt'] === TRUE) {
+        $message = $message . PHP_EOL . '<p>You will receive an email copy of your receipt once processed.</p>';
+      }
+
+      $this->webform->setSetting($confirmationMessageId, $message);
+    }
+
     $webform_submission->setData($data);
   }
 
@@ -495,6 +521,19 @@ class DonationWebformHandler extends WebformHandlerBase {
       $this->setHandlerId($this->pluginId);
       return $this->pluginId;
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setConditions($conditions) {
+    if (is_null($conditions)) {
+      $conditions = [];
+    }
+
+    $this->conditions = $conditions;
+    $this->conditionsResultCache = [];
+    return $this;
   }
 
   /**

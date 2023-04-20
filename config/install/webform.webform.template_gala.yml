@@ -17,7 +17,7 @@ category: Cybersource
 elements: |-
   tickets:
     '#type': details
-    '#title': 'Tickets'
+    '#title': 'Ticket Levels'
     gala:
       '#type': webform_table
       '#title': 'Gala Tables and Tickets'
@@ -36,10 +36,10 @@ elements: |-
           '#type': number
           '#title': 'Quanity Benefactor'
           '#title_display': none
+          '#size': '3'
           '#attributes':
             data-amount: 25000
           '#min': 0
-          '#size': '3'
         gala_01_ticket_level:
           '#type': webform_markup
           '#markup': 'Benefactor Table'
@@ -56,7 +56,6 @@ elements: |-
           '#attributes':
             data-amount: 15000
           '#min': 0
-          '#size': '3'
         gala_02_ticket_level:
           '#type': webform_markup
           '#markup': 'Patron Table'
@@ -73,7 +72,6 @@ elements: |-
           '#attributes':
             data-amount: 10000
           '#min': 0
-          '#size': '3'
         gala_03_ticket_level:
           '#type': webform_markup
           '#markup': 'Partner Table'
@@ -90,7 +88,6 @@ elements: |-
           '#attributes':
             data-amount: 3000
           '#min': 0
-          '#size': '3'
         gala_04_ticket_level:
           '#type': webform_markup
           '#markup': 'Advocate Table'
@@ -107,7 +104,6 @@ elements: |-
           '#attributes':
             data-amount: 2000
           '#min': 0
-          '#size': '3'
         gala_05_ticket_level:
           '#type': webform_markup
           '#markup': 'Friend Table'
@@ -124,7 +120,6 @@ elements: |-
           '#attributes':
             data-amount: 1000
           '#min': 0
-          '#size': '3'
         gala_06_ticket_level:
           '#type': webform_markup
           '#markup': 'Supporter Table'
@@ -391,7 +386,7 @@ settings:
   draft_loaded_message: ''
   draft_pending_single_message: ''
   draft_pending_multiple_message: ''
-  confirmation_type: modal
+  confirmation_type: inline
   confirmation_url: '[webform:url]/receipt'
   confirmation_title: 'Thank you'
   confirmation_message: 'Thank you very much for your donation. You may save a copy of a receipt for your records <a href="[webform:url]/receipt?token=[webform_submission:token]">here</a>.'

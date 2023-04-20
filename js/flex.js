@@ -52,6 +52,9 @@
     payButton: function(event) {
       event.preventDefault()
 
+      event.target.classList.toggle('disabled', true)
+      event.target.classList.toggle('submitting', true)
+
       const options = {
         expirationMonth: document.querySelector('[data-drupal-selector="edit-expiration-month"]').value,
         expirationYear: document.querySelector('[data-drupal-selector="edit-expiration-year"]').value
@@ -60,6 +63,9 @@
       Drupal.behaviors.aaaWebformTemplates.microform.createToken(options, function(error, token) {
         if (error) {
           console.error(error)
+
+          event.target.classList.toggle('disabled', false)
+          event.target.classList.toggle('submitting', false)
         } else {
           document.querySelector('input[data-drupal-selector="token"]').value = token
 
