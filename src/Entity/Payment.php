@@ -48,8 +48,7 @@ use Drupal\aaa_cybersource\PaymentInterface;
  *     "add-form" = "/admin/content/aaa/payment/add",
  *     "canonical" = "/payment/{payment}",
  *     "edit-form" = "/admin/content/aaa/payment/{payment}/edit",
- *     "delete-form" = "/admin/content/aaa/payment/{payment}/delete",
- *     "collection" = "/admin/content/payment"
+ *     "delete-form" = "/admin/content/aaa/payment/{payment}/delete"
  *   },
  *   field_ui_base_route = "entity.payment.settings"
  * )

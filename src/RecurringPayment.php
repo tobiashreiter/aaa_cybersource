@@ -102,7 +102,7 @@ class RecurringPayment {
       // Must have customer stored.
       ->condition('customer_id', NULL, 'IS NOT NULL')
       // Stored recurring_next date must be passed.
-      ->condition('recurring_next', date($this->dateTimeFormat), '<')
+      ->condition('recurring_next', gmdate($this->dateTimeFormat), '<')
       ->execute();
   }
 
