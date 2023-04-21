@@ -1,9 +1,6 @@
-uuid: 24c97e0f-1332-4bc5-9a44-cdb534880c4e
 langcode: en
 status: true
 dependencies:
-  config:
-    - system.menu.admin
   module:
     - aaa_cybersource
     - datetime
@@ -920,10 +917,14 @@ display:
           tokenize: false
       path: admin/content/payments
       menu:
-        type: normal
+        type: tab
         title: Payments
+        description: ''
+        weight: 0
+        expanded: false
         menu_name: admin
         parent: system.admin_content
+        context: '1'
     cache_metadata:
       max-age: -1
       contexts:

@@ -9,7 +9,7 @@ use CyberSource\Configuration;
 use CyberSource\Api\CustomerApi;
 use CyberSource\Api\CustomerPaymentInstrumentApi;
 use CyberSource\Api\InstrumentIdentifierApi;
-use CyberSource\Api\KeyGenerationApi;
+use CyberSource\Api\MicroformIntegrationApi;
 use CyberSource\Api\PaymentsApi;
 use CyberSource\Api\PaymentInstrumentApi;
 use CyberSource\Api\TransactionDetailsApi;
@@ -19,6 +19,7 @@ use CyberSource\Authentication\Core\MerchantConfiguration;
 use CyberSource\Logging\LogConfiguration;
 
 use CyberSource\Model\CreatePaymentRequest;
+use CyberSource\Model\GenerateCaptureContextRequest;
 use CyberSource\Model\Ptsv2paymentsOrderInformation;
 use CyberSource\Model\Ptsv2paymentsTokenInformation;
 use CyberSource\Model\PostInstrumentIdentifierRequest;
@@ -274,8 +275,6 @@ class CybersourceClient {
       return '';
     }
 
-    $instance = new KeyGenerationApi($this->apiClient);
-
     if (is_null($host) === TRUE || empty($host)) {
       $request = $this->requestStack->getCurrentRequest();
       $targetOrigin = $request->getSchemeAndHttpHost();
@@ -290,14 +289,29 @@ class CybersourceClient {
     }
 
     $this->setPayload([
-      'encryptionType' => 'RsaOaep256',
-      'targetOrigin' => $targetOrigin,
+      'targetOrigins' => [$targetOrigin],
+      'allowedCardNetworks' => [
+        "VISA",
+        "MAESTRO",
+        "MASTERCARD",
+        "AMEX",
+        "DISCOVER",
+        "DINERSCLUB",
+        "JCB",
+        "CUP",
+        "CARTESBANCAIRES",
+        "CARNET",
+      ],
+      "clientVersion" => "v2.0",
     ]);
 
+    $instance = new MicroformIntegrationApi($this->apiClient);
+    $generateCaptureContextRequest = new GenerateCaptureContextRequest($this->payload);
+
     try {
-      $keyResponse = $instance->generatePublicKey($this->auth, $this->payload);
+      $keyResponse = $instance->generateCaptureContext($generateCaptureContextRequest);
       $response = $keyResponse[0];
-      return $response->getKeyId();
+      return $response;
     }
     catch (ApiException $e) {
       print_r($e->getResponseBody());

@@ -6,10 +6,23 @@ flex:
     - core/drupalSettings
     - aaa_cybersource/flex-microform
 
-flex-microform:
-  version: 0.11.6
+flex-dev:
+  version: 1.0.0
   js:
-    https://flex.cybersource.com/cybersource/assets/microform/0.11/flex-microform.min.js: { minified: true, external: true }
+    js/flex.js: {}
+  dependencies:
+    - core/drupalSettings
+    - aaa_cybersource/flex-microform-dev
+
+flex-microform:
+  version: 2.0
+  js:
+    https://flex.cybersource.com/microform/bundle/v2/flex-microform.min.js: { minified: true, external: true }
+
+flex-microform-dev:
+  version: 2.0
+  js:
+    https://testflex.cybersource.com/microform/bundle/v2/flex-microform.min.js: { minified: true, external: true }
 
 gala-table:
   version: 1.0.0

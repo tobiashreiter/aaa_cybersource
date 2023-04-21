@@ -15,8 +15,8 @@ entity.payment.delete_form:
   route_name: entity.payment.delete_form
   base_route: entity.payment.canonical
   weight: 10
-entity.payment.collection:
-  title: Payment
-  route_name: entity.payment.collection
-  base_route: system.admin_content
-  weight: 10
+# entity.payment.collection:
+#   title: Payment
+#   route_name: entity.payment.collection
+#   base_route: system.admin_content
+#   weight: 10
