@@ -19,27 +19,27 @@ description: 'Webform which is connected to the AAA Cybersource donation platfor
 category: Cybersource
 elements: |-
   donate:
-    '#type': details
+    '#type': container
     '#title': Donate
     '#open': true
     amount:
       '#type': webform_radios_other
-      '#title': 'Yes! I would like to make a gift in the following amount:'
+      '#title': 'Donation amount:'
       '#options':
         50: $50
         100: $100
         150: $150
         250: $250
         500: $500
-        1000: $1000
-        2500: $2500
+        1000: '$1,000'
+        2500: '$2,500'
       '#options_display': buttons
       '#other__type': number
       '#other__option_label': Other
       '#other__placeholder': ''
       '#other__field_prefix': $
       '#other__min': '1'
-      '#required': true
+      '#default_value': '50'
     recurring:
       '#type': checkbox
       '#title': 'Yes, automatically repeat this gift every month.'
@@ -52,13 +52,13 @@ elements: |-
       '#other__option_label': Other
       '#other__placeholder': ''
       '#other__field_prefix': '(please specify)'
-      '#required': true
+      '#default_value': 'Greatest Need'
     no_journal:
       '#type': checkbox
-      '#title': 'I do not wish to receive the Archives of American Art Journal. I understand that no goods and services will be received for my donation, making it fully tax deductible.'
+      '#title': 'Donors of $250 or more will automatically receive the Archives of American Art Journal (valued at $35).  If you do not wish to receive the to receive the Journal, please check here and your gift will be fully tax deductible.  Gifts greater than $1,750 are fully tax deductible and will receive complementary copies of the Journal.'
     memorial_honorary_gifts_fieldset:
       '#type': fieldset
-      '#title': 'Memorial & Honorary Gifts'
+      '#title': 'Memorial and Honorary Gifts'
       '#attributes':
         class:
           - form-composite
@@ -98,7 +98,7 @@ elements: |-
             ':input[name="memorial_honorary_gifts"]':
               checked: true
   billing_information:
-    '#type': details
+    '#type': container
     '#title': 'Billing Information'
     name:
       '#type': webform_name
@@ -138,7 +138,7 @@ elements: |-
       '#title': Email
       '#required': true
   payment_details:
-    '#type': details
+    '#type': container
     '#title': 'Payment Details'
     card_type:
       '#type': radios
@@ -249,7 +249,7 @@ settings:
   ajax_effect: ''
   ajax_speed: null
   page: true
-  page_submit_path: /donation
+  page_submit_path: ''
   page_confirm_path: ''
   page_theme_name: ''
   form_title: both

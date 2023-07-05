@@ -7,7 +7,7 @@ dependencies:
 weight: 0
 open: null
 close: null
-uid: 1
+uid: null
 template: true
 archive: false
 id: template_gala
@@ -16,7 +16,7 @@ description: 'Donation form for AAA Galas. Contains a ticket table that calculat
 category: Cybersource
 elements: |-
   tickets:
-    '#type': details
+    '#type': container
     '#title': 'Ticket Levels'
     gala:
       '#type': webform_table
@@ -118,14 +118,14 @@ elements: |-
           '#title': 'Quantity Supporter'
           '#title_display': none
           '#attributes':
-            data-amount: 1000
+            data-amount: 1500
           '#min': 0
         gala_06_ticket_level:
           '#type': webform_markup
           '#markup': 'Supporter Table'
         gala_06_amount:
           '#type': webform_markup
-          '#markup': '$1,000'
+          '#markup': '$1,500'
     amount:
       '#type': textfield
       '#title': 'Total Amount'
@@ -134,7 +134,7 @@ elements: |-
       '#type': textfield
       '#title': 'Please list your name as you would like to be recognized in Gala materials:'
   billing_information:
-    '#type': details
+    '#type': container
     '#title': 'Billing Information'
     name:
       '#type': webform_name
@@ -174,7 +174,7 @@ elements: |-
       '#title': Email
       '#required': true
   payment_details:
-    '#type': details
+    '#type': container
     '#title': 'Payment Details'
     card_type:
       '#type': radios
@@ -369,8 +369,6 @@ settings:
   wizard_toggle: false
   wizard_toggle_show_label: ''
   wizard_toggle_hide_label: ''
-  wizard_page_type: container
-  wizard_page_title_tag: h2
   preview: 0
   preview_label: ''
   preview_title: ''
@@ -418,6 +416,8 @@ settings:
   token_update: false
   token_delete: false
   serial_disabled: false
+  wizard_page_type: container
+  wizard_page_title_tag: h2
 access:
   create:
     roles:

@@ -263,6 +263,13 @@ class DonationWebformHandler extends WebformHandlerBase {
 
     // Set up client and prepare data.
     $data = $webform_submission->getData();
+
+    if (is_null($data['amount']) === TRUE || $data['amount'] < 1) {
+      $form_state->setErrorByName('amount', 'Please specify an amount.');
+
+      return;
+    }
+
     $environment = $this->getFormEnvironment();
     $this->cybersourceClient->setEnvironment($environment);
 
