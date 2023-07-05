@@ -265,6 +265,17 @@ function aaa_cybersource_webform_element_alter(array &$element, \Drupal\Core\For
   if ($element['#type'] === 'webform_table' && $element['#webform_key'] === 'gala') {
     $element['#attached']['library'][] = 'aaa_cybersource/gala-table';
   }
+  elseif (
+    $element['#type'] === 'select' &&
+    $element['#title'] === 'Country/Region'
+  ) {
+    // Move United States to the top.
+    $options = $element['#options'];
+    $united_states = $options['US'];
+    unset($options['US']);
+    $options = ['US' => $united_states] + $options;
+    $element['#options'] = $options;
+  }
 }
 
 /**
