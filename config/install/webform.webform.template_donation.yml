@@ -98,7 +98,7 @@ elements: |-
             ':input[name="memorial_honorary_gifts"]':
               checked: true
   billing_information:
-    '#type': container
+    '#type': fieldset
     '#title': 'Billing Information'
     name:
       '#type': webform_name

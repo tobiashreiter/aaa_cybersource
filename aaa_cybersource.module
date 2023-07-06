@@ -261,8 +261,12 @@ function aaa_cybersource_cron() {
   }
 }
 
+/**
+ * Implements hook_webform_element_alter().
+ */
 function aaa_cybersource_webform_element_alter(array &$element, \Drupal\Core\Form\FormStateInterface $form_state, array $context) {
   if ($element['#type'] === 'webform_table' && $element['#webform_key'] === 'gala') {
+    // Attach helpful JS library.
     $element['#attached']['library'][] = 'aaa_cybersource/gala-table';
   }
   elseif (

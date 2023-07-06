@@ -134,7 +134,7 @@ elements: |-
       '#type': textfield
       '#title': 'Please list your name as you would like to be recognized in Gala materials:'
   billing_information:
-    '#type': container
+    '#type': fieldset
     '#title': 'Billing Information'
     name:
       '#type': webform_name
