@@ -441,7 +441,7 @@ class DonationWebformHandler extends WebformHandlerBase {
     if ($data['status'] === 'AUTHORIZED') {
       $confirmationMessageId = 'confirmation_message';
       $defaultConfirmationMessage = $this->webform->getSetting($confirmationMessageId, '');
-      $message = '<p>Your payment was authorized.<p>' . PHP_EOL . $defaultConfirmationMessage;
+      $message = '<h2>Thank you.</h2><p>Your payment was authorized.<p>' . PHP_EOL . $defaultConfirmationMessage;
 
       if ($this->configuration['email_receipt'] === TRUE) {
         $message = $message . PHP_EOL . '<p>You will receive an email copy of your receipt.</p>';
@@ -454,7 +454,7 @@ class DonationWebformHandler extends WebformHandlerBase {
       $confirmationMessageId = 'confirmation_message';
       $defaultConfirmationMessage = $this->webform->getSetting($confirmationMessageId, '');
 
-      $message = '<p>Thank you. Your payment is authorized and pending review.</p>';
+      $message = '<h2>Thank you.</h2><p>Your payment is authorized and pending review.</p>';
 
       if ($this->configuration['email_receipt'] === TRUE) {
         $message = $message . PHP_EOL . '<p>You will receive an email copy of your receipt once processed.</p>';
