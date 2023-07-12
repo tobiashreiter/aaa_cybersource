@@ -92,7 +92,7 @@ class Receipts {
    *   subject line.
    */
   public function getSubject() {
-    return 'Your Receipt';
+    return 'Thank you for your support of the Archives of American Art';
   }
 
   /**
@@ -344,9 +344,13 @@ class Receipts {
     $card = $paymentInformation->getCard();
     $amount = strpos($amountDetails->getAuthorizedAmount(), '.') > 0 ? $amountDetails->getAuthorizedAmount() : $amountDetails->getAuthorizedAmount() . '.00';
 
+    $donationType = strpos($payment->get('code')->value, 'GALA') > -1 ? 'GALA' : 'DONATION';
+
     $body = '';
 
     $body .= "
+      Thank you for your support of the Archives of American Art.
+
       RECEIPT
 
       Date: {$this->dateFormatter->format(strtotime($datetime), 'long')}
@@ -386,6 +390,19 @@ class Receipts {
       TOTAL AMOUNT
       $ {$amount}
       ";
+
+    if ($donationType === 'DONATION') {
+    $body .= "
+      
+      Thank you for supporting the Archives of American Art. By giving to the Archives, you are helping to ensure that significant records and untold stories documenting the history of art in America are collected, preserved, and shared with the world. Unless you opted out of receiving it, donors of at least $250 will receive the Archives of American Art Journal, with goods and services valued at $35. Gifts less than $250 or greater than $1,750 are fully tax deductible. Should you have any questions about your donation, you can reach us at AAAGiving@si.edu or (202) 633-7989.
+      ";
+    }
+    else if ($donationType === 'GALA') {
+    $body .= "
+      
+      Thank you for supporting the Archives of American Art through the purchase of tickets to our 2023 Gala! By giving to the Archives, you are helping to ensure that significant records and untold stories documenting the history of art in America are collected, preserved, and shared with the world. A tax receipt will be emailed to you. Should you have any questions, please contact AAAGiving@si.edu or (202) 633-7989.
+      ";
+    }
 
     return $body;
   }
