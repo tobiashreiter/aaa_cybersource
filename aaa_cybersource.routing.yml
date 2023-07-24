@@ -16,10 +16,13 @@ aaa_cybersource.token:
   path: '/admin/config/cybersource/token/{webform}'
   defaults:
     _controller: \Drupal\aaa_cybersource\Controller\Cybersource::getFlexToken
-    webform: ''
   methods: [GET]
   requirements:
     _access: 'TRUE'
+  options:
+    parameters:
+      webform:
+        type: entity:webform
 aaa_cybersource.manage_templates:
   path: '/admin/config/cybersource/templates'
   defaults:
