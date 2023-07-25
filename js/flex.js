@@ -53,6 +53,13 @@
       button.addEventListener('click', Drupal.behaviors.aaaWebformTemplates.payButton)
 
       Drupal.behaviors.aaaWebformTemplates.microform = microform
+
+      // Add aria-invalid to all fields which are marked as required.
+      if (context.querySelectorAll('input[required]').length > 0) {
+        context.querySelectorAll('.form-control[required="required"]').forEach(function (i) {
+          i.setAttribute('aria-invalid', false)
+        })
+      }
     },
     fetchToken: async function() {
       let webform_id = drupalSettings.aaa_cybersource.webform
