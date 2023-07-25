@@ -36,6 +36,7 @@ elements: |-
       '#options_display': buttons
       '#other__type': number
       '#other__option_label': Other
+      '#other__title': 'Other Donation Amount:'
       '#other__placeholder': ''
       '#other__field_prefix': $
       '#other__min': '1'
