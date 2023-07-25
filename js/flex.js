@@ -37,14 +37,11 @@
         if (data.card.length === 1) {
           const type = data.card[0].name === 'amex' ? 'american express' : data.card[0].name
           const currentTypeInputValue = document.querySelector('input[name="card_type"]:checked')?.value
-          const majorTypes = ['amex', 'discover', 'mastercard', 'visa']
+          const majorTypes = ['american express', 'discover', 'mastercard', 'visa']
 
           if (majorTypes.includes(type) === true && type !== currentTypeInputValue) {
             document.querySelector('input[name="card_type"][value="' + type + '"]').checked = true
           }
-        }
-        else if (data.card.length === 0 || couldBeValid === false) {
-          document.querySelectorAll('input[name="card_type"]').forEach(c => c.checked = 0)
         }
       })
 
