@@ -49,6 +49,16 @@ class WebformMicroformElement extends WebformCompositeBase {
           'class' => ['js-form-required form-required'],
         ],
       ],
+      'cvn-notification' => [
+        '#type' => 'html_tag',
+        '#tag' => 'div',
+        '#value' => t(''),
+        '#attributes' => [
+          'id' => ['cvn-notification'],
+          'class' => ['form-notification'],
+          'role' => 'alert',
+        ],
+      ],
       'cvn' => [
         '#type' => 'container',
         '#id' => 'edit-cvn',

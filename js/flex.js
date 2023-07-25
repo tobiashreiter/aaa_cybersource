@@ -12,7 +12,7 @@
         },
         ':focus': { 'color': 'black' },
         ':disabled': { 'cursor': 'not-allowed' },
-        'valid': { 'color': '#46BA69' },
+        'valid': { 'color': '#495057' },
         'invalid': { 'color': '#EE2D24' }
       }
       const microform = flex.microform({ styles: myStyles })
@@ -29,9 +29,14 @@
 
         if (empty === false && couldBeValid === false) {
           document.querySelector('#edit-card-number').parentElement.querySelector('#card-number-notification').innerHTML = 'Credit card number is invalid.'
+          document.querySelector('#edit-card-number').classList.toggle('is-invalid', true)
         }
         else {
           document.querySelector('#edit-card-number').parentElement.querySelector('#card-number-notification').innerHTML = ''
+        }
+
+        if (couldBeValid === true) {
+          document.querySelector('#edit-card-number').classList.toggle('is-invalid', false)
         }
 
         if (data.card.length === 1) {
@@ -50,6 +55,8 @@
       button.addEventListener('click', Drupal.behaviors.aaaWebformTemplates.payButton)
 
       Drupal.behaviors.aaaWebformTemplates.microform = microform
+      Drupal.behaviors.aaaWebformTemplates.number = number
+      Drupal.behaviors.aaaWebformTemplates.securityCode = securityCode
 
       // Add aria-invalid to all fields which are marked as required.
       if (context.querySelectorAll('input[required]').length > 0) {
@@ -91,10 +98,28 @@
 
       Drupal.behaviors.aaaWebformTemplates.microform.createToken(options, function(error, token) {
         if (error) {
-          console.error(error)
-
           event.target.classList.toggle('disabled', false)
           event.target.classList.toggle('submitting', false)
+
+          if (error.reason && error.reason === 'CREATE_TOKEN_VALIDATION_FIELDS') {
+            const details = error.details
+
+            // Handle errors.
+            details.forEach(function(d) {
+              if (d.location === 'number') {
+                document.querySelector('#card-number-notification').innerHTML = 'Validation error. Check that the credit card number is valid.'
+                Drupal.behaviors.aaaWebformTemplates.number._container.classList.toggle('is-invalid', true)
+              }
+
+              if (d.location === 'securityCode') {
+                document.querySelector('#cvn-notification').innerHTML = 'Validation error. Check that the credit card CVN is valid.'
+                Drupal.behaviors.aaaWebformTemplates.securityCode._container.classList.toggle('is-invalid', true)
+              }
+            })
+          }
+          else {
+            console.error(error)
+          }
         } else {
           document.querySelector('input[data-drupal-selector="token"]').value = token
 
