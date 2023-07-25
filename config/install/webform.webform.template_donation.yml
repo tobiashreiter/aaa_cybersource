@@ -51,6 +51,7 @@ elements: |-
         'Greatest Need': 'The Archives'' greatest need'
       '#options_display': buttons
       '#other__option_label': Other
+      '#other__title': 'Where you would like your gift directed:'
       '#other__placeholder': ''
       '#other__field_prefix': '(please specify)'
       '#default_value': 'Greatest Need'
