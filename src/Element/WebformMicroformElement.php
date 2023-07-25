@@ -24,6 +24,16 @@ class WebformMicroformElement extends WebformCompositeBase {
           'class' => ['js-form-required form-required'],
         ],
       ],
+      'card-number-notification' => [
+        '#type' => 'html_tag',
+        '#tag' => 'div',
+        '#value' => t(''),
+        '#attributes' => [
+          'id' => ['card-number-notification'],
+          'class' => ['form-notification'],
+          'role' => 'alert',
+        ],
+      ],
       'card-number' => [
         '#type' => 'container',
         '#id' => 'edit-card-number',

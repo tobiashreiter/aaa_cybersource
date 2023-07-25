@@ -6,14 +6,14 @@
       const flex = new Flex(json);
       const myStyles = {
         'input': {
-          'font-size': '14px',
-          'font-family': 'helvetica, tahoma, calibri, sans-serif',
-          'color': '#555'
+          'font-size': '16px',
+          'font-family': '"GT Walsheim", Helvetica, Arial, sans-serif',
+          'color': '#495057'
         },
-        ':focus': { 'color': 'blue' },
+        ':focus': { 'color': 'black' },
         ':disabled': { 'cursor': 'not-allowed' },
-        'valid': { 'color': '#3c763d' },
-        'invalid': { 'color': '#a94442' }
+        'valid': { 'color': '#46BA69' },
+        'invalid': { 'color': '#EE2D24' }
       }
       const microform = flex.microform({ styles: myStyles })
       const number = microform.createField('number', { placeholder: 'Enter card number' })
@@ -22,6 +22,31 @@
       // Identify the containers to replace.
       number.load('#edit-card-number')
       securityCode.load('#edit-cvn')
+
+      number.on('change', function(data) {
+        const couldBeValid = data.couldBeValid
+        const empty = data.empty
+
+        if (empty === false && couldBeValid === false) {
+          document.querySelector('#edit-card-number').parentElement.querySelector('#card-number-notification').innerHTML = 'Credit card number is invalid.'
+        }
+        else {
+          document.querySelector('#edit-card-number').parentElement.querySelector('#card-number-notification').innerHTML = ''
+        }
+
+        if (data.card.length === 1) {
+          const type = data.card[0].name === 'amex' ? 'american express' : data.card[0].name
+          const currentTypeInputValue = document.querySelector('input[name="card_type"]:checked')?.value
+          const majorTypes = ['amex', 'discover', 'mastercard', 'visa']
+
+          if (majorTypes.includes(type) === true && type !== currentTypeInputValue) {
+            document.querySelector('input[name="card_type"][value="' + type + '"]').checked = true
+          }
+        }
+        else if (data.card.length === 0 || couldBeValid === false) {
+          document.querySelectorAll('input[name="card_type"]').forEach(c => c.checked = 0)
+        }
+      })
 
       // Update the submit button event listener.
       const button = document.querySelector('.webform-submission-form input[type="submit"]')
