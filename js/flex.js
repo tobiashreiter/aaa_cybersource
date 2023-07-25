@@ -117,6 +117,12 @@
               }
             })
           }
+          else if (error.reason && error.reason === 'CREATE_TOKEN_NO_FIELDS_LOADED') {
+            document.querySelector('#card-number-notification').innerHTML = 'Payment platform has not loaded.'
+            Drupal.behaviors.aaaWebformTemplates.number._container.classList.toggle('is-invalid', true)
+            document.querySelector('#cvn-notification').innerHTML = 'Payment platform has not loaded.'
+            Drupal.behaviors.aaaWebformTemplates.securityCode._container.classList.toggle('is-invalid', true)
+          }
           else {
             console.error(error)
           }
