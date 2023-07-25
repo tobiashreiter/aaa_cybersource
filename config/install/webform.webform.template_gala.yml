@@ -130,6 +130,7 @@ elements: |-
       '#type': textfield
       '#title': 'Total Amount'
       '#field_prefix': $
+      '#readonly': true
     gala_name:
       '#type': textfield
       '#title': 'Please list your name as you would like to be recognized in Gala materials:'
@@ -368,6 +369,8 @@ settings:
   wizard_toggle: false
   wizard_toggle_show_label: ''
   wizard_toggle_hide_label: ''
+  wizard_page_type: container
+  wizard_page_title_tag: h2
   preview: 0
   preview_label: ''
   preview_title: ''
@@ -415,8 +418,6 @@ settings:
   token_update: false
   token_delete: false
   serial_disabled: false
-  wizard_page_type: container
-  wizard_page_title_tag: h2
 access:
   create:
     roles:
