@@ -75,7 +75,7 @@
         webform_id = id.replace('webform-submission-', '').replace('-add-form', '').replaceAll('-', '_')
       }
 
-      const token = await fetch(`/admin/config/cybersource/token/${webform_id}`)
+      const token = await fetch(`/api/cybersource/token/${webform_id}`)
       .then(function(res) {
         return res.json()
       })
