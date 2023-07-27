@@ -400,7 +400,7 @@ class Receipts {
     else if ($donationType === 'GALA') {
     $body .= "
       
-      Thank you for supporting the Archives of American Art through the purchase of tickets to our 2023 Gala! By giving to the Archives, you are helping to ensure that significant records and untold stories documenting the history of art in America are collected, preserved, and shared with the world. A tax receipt will be emailed to you. Should you have any questions, please contact AAAGiving@si.edu or (202) 633-7989.
+      Thank you for your support of the 2023 Archives of American Art Gala.  The estimated fair-market value of goods and services for table purchases is $4,060 for Benefactor, $3,285 for Patron, and $2,635 for Partner. Fair-market value for all ticket purchases is $360.  If you have any questions about your gift, please contact us at AAAGala@si.edu or (202) 633-7989.  We look forward to seeing you in New York City on Tuesday, October 24.
       ";
     }
 
