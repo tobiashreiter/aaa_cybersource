@@ -39,7 +39,7 @@ class Receipts {
 
   /**
    * Queue.
-   * 
+   *
    * @var \Drupal\Core\Queue\QueueFactory
    */
   protected $queue;
@@ -112,6 +112,7 @@ class Receipts {
     $card = $paymentInformation->getCard();
     $amountDetails = $transaction[0]->getOrderInformation()->getAmountDetails();
     $datetime = $transaction[0]->getSubmitTimeUTC();
+    $donationType = strpos($payment->get('code')->value, 'GALA') > -1 ? 'GALA' : 'DONATION';
 
     // Build receipt.
     $build['title'] = [
@@ -134,6 +135,14 @@ class Receipts {
       '#type' => 'html_tag',
       '#tag' => 'div',
       '#value' => t('Order Number: :number', [':number' => $payment->get('code')->value]),
+      '#attributes' => [
+        'style' => ['margin-bottom: 25px'],
+      ],
+    ];
+
+    $build['break_1'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'hr',
     ];
 
     $build['billing_information'] = [
@@ -314,6 +323,35 @@ class Receipts {
       '#type' => 'html_tag',
       '#tag' => 'div',
       '#value' => t('$:amount', [':amount' => $amount]),
+      '#attributes' => [
+        'style' => ['margin-bottom: 25px'],
+      ],
+    ];
+
+    $build['break_2'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'hr',
+    ];
+
+    $build['message'] = [
+      '#type' => 'container',
+    ];
+
+    if ($donationType === 'GALA') {
+      $markup = "<p>Thank you for your support of the 2023 Archives of American Art Gala.  The estimated fair-market value of goods and services for table purchases is $4,060 for Benefactor, $3,285 for Patron, and $2,635 for Partner. Fair-market value for all ticket purchases is $360.  If you have any questions about your gift, please contact us at <a>AAAGala@si.edu</a> or (202) 633-7989.  We look forward to seeing you in New York City on Tuesday, October 24.</p>";
+    }
+    else {
+      $markup = "<p>Thank you for supporting the Archives of American Art. By giving to the Archives, you are helping to ensure that significant records and untold stories documenting the history of art in America are collected, preserved, and shared with the world. Unless you opted out of receiving it, donors of at least $250 will receive the Archives of American Art Journal, with goods and services valued at $35. Gifts less than $250 or greater than $1,750 are fully tax deductible. Should you have any questions about your donation, you can reach us at <a>AAAGiving@si.edu</a> or (202) 633-7989.</p>";
+    }
+
+    $build['message']['title'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'h2',
+      '#value' => t('Thank You'),
+    ];
+
+    $build['message']['message'] = [
+      '#markup' => $markup,
     ];
 
     return $build;
@@ -393,13 +431,13 @@ class Receipts {
 
     if ($donationType === 'DONATION') {
     $body .= "
-      
+
       Thank you for supporting the Archives of American Art. By giving to the Archives, you are helping to ensure that significant records and untold stories documenting the history of art in America are collected, preserved, and shared with the world. Unless you opted out of receiving it, donors of at least $250 will receive the Archives of American Art Journal, with goods and services valued at $35. Gifts less than $250 or greater than $1,750 are fully tax deductible. Should you have any questions about your donation, you can reach us at AAAGiving@si.edu or (202) 633-7989.
       ";
     }
     else if ($donationType === 'GALA') {
     $body .= "
-      
+
       Thank you for your support of the 2023 Archives of American Art Gala.  The estimated fair-market value of goods and services for table purchases is $4,060 for Benefactor, $3,285 for Patron, and $2,635 for Partner. Fair-market value for all ticket purchases is $360.  If you have any questions about your gift, please contact us at AAAGala@si.edu or (202) 633-7989.  We look forward to seeing you in New York City on Tuesday, October 24.
       ";
     }
