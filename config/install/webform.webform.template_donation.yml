@@ -353,6 +353,7 @@ settings:
   confirmation_url: '[webform:url]/receipt'
   confirmation_title: 'Thank you'
   confirmation_message: 'Thank you very much for your donation. You may save a copy of a receipt for your records <a href="[webform:url]/receipt?token=[webform_submission:token]">here</a>.'
+  confirmation_attributes: {  }
   confirmation_back: true
   confirmation_back_label: ''
   confirmation_back_attributes: {  }
