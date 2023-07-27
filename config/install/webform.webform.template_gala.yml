@@ -388,7 +388,7 @@ settings:
   confirmation_type: inline
   confirmation_url: '[webform:url]/receipt'
   confirmation_title: 'Thank you'
-  confirmation_message: 'Thank you very much for your donation. You may save a copy of a receipt for your records <a href="[webform:url]/receipt?token=[webform_submission:token]">here</a>.'
+  confirmation_message: "Thank you for your support of the 2023 Archives of American Art Gala.&nbsp; The estimated fair-market value of goods and services for table purchases is $4,060 for Benefactor, $3,285 for Patron, and $2,635 for Partner. Fair-market value for all ticket purchases is $360.&nbsp; If you have any questions about your gift, please contact us at <a href=\"mailto:AAAGala@si.edu\" target=\"_blank\"><em>AAAGala@si.edu</em></a> or (202) 633-7989.&nbsp; We look forward to seeing you in New York City on Tuesday, October 24.<br />\r\n<br />\r\nYou may save a copy of a receipt for your records <a href=\"[webform:url]/receipt?token=[webform_submission:token]\">here</a>."
   confirmation_attributes: {  }
   confirmation_back: true
   confirmation_back_label: ''
