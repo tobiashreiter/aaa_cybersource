@@ -214,7 +214,6 @@ class CybersourceClient {
     if (is_null($global) === FALSE) {
       // Initialize with development host until ready.
       $this->setRequestHost('apitest.cybersource.com');
-
       $this->setAuth($global['auth']);
       $this->setMerchantId($global[$global['environment']]['merchant_id']);
       $this->setMerchantKey($global[$global['environment']]['merchant_key']);
@@ -634,6 +633,8 @@ class CybersourceClient {
    *   The environment name.
    */
   public function setEnvironment(string $env) {
+    $this->setReady(FALSE);
+
     if (!isset($this->merchantConfiguration)) {
       return;
     }
@@ -648,7 +649,34 @@ class CybersourceClient {
       $this->setRequestHost('apitest.cybersource.com');
     }
 
-    $this->merchantConfiguration->setRunEnvironment($this->requestHost);
+    // Update client settings.
+    $configurationSettings = $this->configFactory->get('aaa_cybersource.settings');
+    $global = $configurationSettings->get('global');
+    $environmentalSettings = $global[$env];
+
+    $this->setMerchantId($environmentalSettings['merchant_id']);
+    $this->setMerchantKey($environmentalSettings['merchant_key']);
+    $this->setMerchantSecretKey($environmentalSettings['merchant_secret']);
+
+    // Find and set certificate file.
+    $file = $this->entityRepository->getActive('file', $environmentalSettings['certificate']['fid']);
+    $uri = $file->getFileUri();
+    $dir = $this->fileSystem->dirname($uri);
+    $realpath = $this->fileSystem->realpath($dir);
+    $this->setCertificateDirectory($realpath . DIRECTORY_SEPARATOR);
+    $this->setCertificateFile(explode('.', $this->fileSystem->basename($uri))[0]);
+
+    $this->apiClient->getConfig()->setHost($this->requestHost);
+
+    $this->setupSettings();
+    $this->setupMerchantConfig();
+
+    // Set new client.
+    $api_client = new ApiClient($this->settings, $this->merchantConfiguration);
+    $this->setApiClient($api_client);
+
+    // Ready
+    $this->setReady(TRUE);
   }
 
   /**
@@ -746,6 +774,7 @@ class CybersourceClient {
     $merchantConfiguration->setKeyPassword('');
     $merchantConfiguration->setUseMetaKey(FALSE);
     $merchantConfiguration->setRunEnvironment($this->requestHost);
+    $merchantConfiguration->setIntermediateHost($this->requestHost);
 
     $this->setMerchantConfiguration($merchantConfiguration);
   }
