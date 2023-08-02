@@ -19,6 +19,28 @@
       const number = microform.createField('number', { placeholder: 'Enter card number' })
       const securityCode = microform.createField('securityCode', { placeholder: '•••' })
 
+      // Use some logic to prevent form from submitting when Cybersource fails to load.
+      const button = document.querySelector('.webform-submission-form input[type="submit"]')
+      button.setAttribute('disabled', true)
+      button.classList.toggle('disabled', true)
+
+      // Create message element.
+      if (!document.querySelector('#not-loaded-warning')) {
+        const notLoadedElement = document.createElement('div')
+        notLoadedElement.setAttribute('id', 'not-loaded-warning')
+        const notLoadedElementTextChild = document.createTextNode('Payment processor did not load correctly. Unable to submit this form.')
+        const buttonParent = button.parentElement
+        notLoadedElement.appendChild(notLoadedElementTextChild)
+        buttonParent.appendChild(notLoadedElement)
+
+        // If Credit Card number loads correctly, remove message element.
+        number.on('load', function(err) {
+          button.removeAttribute('disabled')
+          button.classList.toggle('disabled', false)
+          document.querySelector('#not-loaded-warning').remove()
+        })
+      }
+
       // Identify the containers to replace.
       number.load('#edit-card-number')
       securityCode.load('#edit-cvn')
@@ -51,7 +73,6 @@
       })
 
       // Update the submit button event listener.
-      const button = document.querySelector('.webform-submission-form input[type="submit"]')
       button.addEventListener('click', Drupal.behaviors.aaaWebformTemplates.payButton)
 
       Drupal.behaviors.aaaWebformTemplates.microform = microform
