@@ -328,7 +328,7 @@ class DonationWebformHandler extends WebformHandlerBase {
       'code' => $data['code'],
     ]);
 
-    $amount = strpos($data['amount'], '.') > 0 ? $data['amount'] : $data['amount'] . '.00';
+    $amount = $this->formatAmountFromWebformData($data['amount']);
     $amountDetails = $this->cybersourceClient->createOrderInformationAmountDetails([
       'totalAmount' => $amount,
       'currency' => 'USD',
@@ -447,6 +447,23 @@ class DonationWebformHandler extends WebformHandlerBase {
         $message = $message . PHP_EOL . '<p>You will receive an email copy of your receipt.</p>';
       }
 
+      // Capture payment.
+      $environment = $this->getFormEnvironment();
+      $this->cybersourceClient->setEnvironment($environment);
+
+      $payment_id = $form_state->getValue('payment_entity');
+      $payment = Payment::load($payment_id);
+      $id = $payment->get('payment_id')->value;
+      $amount = $payment->get('authorized_amount')->value;
+      $code = $payment->get('code')->value;
+
+      $captureResponse = $this->cybersourceClient->capturePayment($id, $code, $amount);
+
+      $payment->set('secure_payment_id', $captureResponse->getId());
+      $payment->set('transaction_id', $captureResponse->getReconciliationId());
+      $payment->set('status', $captureResponse->getStatus());
+      $payment->save();
+
       $this->webform->setSetting($confirmationMessageId, $message);
     }
     // Cases when manager must review the payment.
@@ -454,7 +471,7 @@ class DonationWebformHandler extends WebformHandlerBase {
       $confirmationMessageId = 'confirmation_message';
       $defaultConfirmationMessage = $this->webform->getSetting($confirmationMessageId, '');
 
-      $message = '<h2>Thank you.</h2><p>Your payment is authorized and pending review.</p>';
+      $message = '<h2>Thank you.</h2><p>Your payment is authorized pending review.</p>';
 
       if ($this->configuration['email_receipt'] === TRUE) {
         $message = $message . PHP_EOL . '<p>You will receive an email copy of your receipt once processed.</p>';
@@ -605,6 +622,17 @@ class DonationWebformHandler extends WebformHandlerBase {
     else {
       return $prefix;
     }
+  }
+
+  /**
+   * Formats the amount received from the form.
+   *
+   * @param string $dataAmount
+   *
+   * @return string
+   */
+  private function formatAmountFromWebformData(string $dataAmount) {
+    return strpos($dataAmount, '.') > 0 ? $dataAmount : $dataAmount . '.00';
   }
 
 }

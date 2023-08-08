@@ -201,13 +201,20 @@ class RecurringPayment {
     $newPayment->set('environment', $environment);
     $newPayment->set('recurring_active', FALSE);
 
-    if ($isRecurring === TRUE) {
-      $tokens = $payResponse[0]->getTokenInformation();
-      $customer = $tokens->getCustomer();
-      $newPayment->set('customer_id', $customer->getId());
-      $newPayment->set('recurring_active', TRUE);
+    if ($status === 'AUTHORIZED') {
+      // If authorized, then capture the payment.
+      $id = $newPaymentId;
+      $amount = $amount;
+      $code = $newCode;
+
+      $captureResponse = $this->cybersourceClient->capturePayment($id, $code, $amount);
+
+      $newPayment->set('secure_payment_id', $captureResponse->getId());
+      $newPayment->set('transaction_id', $captureResponse->getReconciliationId());
+      $newPayment->set('status', $captureResponse->getStatus());
     }
 
+    // Save new payment entity.
     $newPayment->save();
     $pid = $newPayment->id();
 

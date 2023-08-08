@@ -350,6 +350,32 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ->setCardinality(-1)
       ->setRequired(FALSE);
 
+    $fields['secure_payment_id'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Secure Payment ID'))
+      ->setDescription(t('The ID returned by Cybersource after a payment is secured.'))
+      ->setDisplayOptions('view', [
+        'type' => 'string',
+        'label' => 'above',
+        'weight' => 2,
+        'settings' => [
+          'link_to_entity' => FALSE,
+        ],
+      ])
+      ->setDisplayConfigurable('view', TRUE);
+
+    $fields['transaction_id'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Transaction Reference Number'))
+      ->setDescription(t('The reference ID of the credit card settlement. Also refered to as the reconciliation ID.'))
+      ->setDisplayOptions('view', [
+        'type' => 'string',
+        'label' => 'above',
+        'weight' => 2,
+        'settings' => [
+          'link_to_entity' => FALSE,
+        ],
+      ])
+      ->setDisplayConfigurable('view', TRUE);
+
     return $fields;
   }
 

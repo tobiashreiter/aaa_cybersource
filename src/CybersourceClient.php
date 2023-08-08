@@ -6,6 +6,7 @@ use CyberSource\ApiClient;
 use CyberSource\ApiException;
 use CyberSource\Configuration;
 
+use CyberSource\Api\CaptureApi;
 use CyberSource\Api\CustomerApi;
 use CyberSource\Api\CustomerPaymentInstrumentApi;
 use CyberSource\Api\InstrumentIdentifierApi;
@@ -18,11 +19,13 @@ use CyberSource\Authentication\Core\MerchantConfiguration;
 
 use CyberSource\Logging\LogConfiguration;
 
+use CyberSource\Model\CapturePaymentRequest;
 use CyberSource\Model\CreatePaymentRequest;
 use CyberSource\Model\GenerateCaptureContextRequest;
 use CyberSource\Model\Ptsv2paymentsOrderInformation;
 use CyberSource\Model\Ptsv2paymentsTokenInformation;
 use CyberSource\Model\PostInstrumentIdentifierRequest;
+use CyberSource\Model\Ptsv2paymentsidcapturesOrderInformation;
 use CyberSource\Model\Ptsv2paymentsPaymentInformation;
 use CyberSource\Model\Ptsv2paymentsProcessingInformation;
 use CyberSource\Model\Ptsv2paymentsOrderInformationBillTo;
@@ -32,6 +35,7 @@ use CyberSource\Model\Ptsv2paymentsPaymentInformationCustomer;
 use CyberSource\Model\Ptsv2paymentsOrderInformationAmountDetails;
 use CyberSource\Model\Tmsv2customersEmbeddedDefaultPaymentInstrumentCard;
 use CyberSource\Model\Tmsv2customersEmbeddedDefaultPaymentInstrumentBillTo;
+use CyberSource\Model\Ptsv2paymentsidcapturesOrderInformationAmountDetails;
 use CyberSource\Model\Ptsv2paymentsProcessingInformationAuthorizationOptions;
 use CyberSource\Model\Ptsv2paymentsProcessingInformationAuthorizationOptionsInitiator;
 use CyberSource\Model\Tmsv2customersEmbeddedDefaultPaymentInstrumentInstrumentIdentifier;
@@ -740,6 +744,58 @@ class CybersourceClient {
     }
 
     return $pi;
+  }
+
+  /**
+   * Capture an authorized payment.
+   *
+   * @param string $payment_id
+   *   The id of the authorization.
+   * @param string $code
+   *   The merchant generated code.
+   * @param string $amount
+   *   The string amount in USD.
+   * @return void
+   */
+  public function capturePayment(string $payment_id, string $code, string $amount) {
+    $clientReferenceInformationArr = [
+      "code" => $code,
+    ];
+
+    $clientReferenceInformation = new Ptsv2paymentsClientReferenceInformation($clientReferenceInformationArr);
+
+    $orderInformationAmountDetailsArr = [
+      "totalAmount" => $amount,
+      "currency" => "USD"
+    ];
+
+    $orderInformationAmountDetails = new Ptsv2paymentsidcapturesOrderInformationAmountDetails($orderInformationAmountDetailsArr);
+
+    $orderInformationArr = [
+      "amountDetails" => $orderInformationAmountDetails
+    ];
+
+    $orderInformation = new Ptsv2paymentsidcapturesOrderInformation($orderInformationArr);
+
+    $requestObjArr = [
+      "clientReferenceInformation" => $clientReferenceInformation,
+      "orderInformation" => $orderInformation
+    ];
+
+    $requestObj = new CapturePaymentRequest($requestObjArr);
+    $api_instance = new CaptureApi($this->apiClient);
+
+    try {
+      $api_response = $api_instance->capturePayment($requestObj, $payment_id);
+
+      return $api_response[0];
+    }
+    catch (ApiException $e) {
+      print_r($e->getResponseBody());
+      print_r($e->getMessage());
+
+      return '';
+    }
   }
 
   /**
