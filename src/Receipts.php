@@ -467,7 +467,12 @@ class Receipts {
       $to = $billTo->getEmail();
     }
 
-    $result = $this->mailer->sendMail($key, $to, $subject, $body);
+    $bcc = TRUE;
+    if ($payment->get('environment')->value === 'development') {
+      $bcc = FALSE;
+    }
+
+    $result = $this->mailer->sendMail($key, $to, $subject, $body, $bcc);
 
     if ($result['send'] === TRUE) {
       $context = [
@@ -520,6 +525,9 @@ class Receipts {
         $this->sendToQueue($environment, $pid, $key, $to);
       }
     }
+
+    $payment->set('receipt_sent', $sent);
+    $payment->save();
 
     return $sent;
   }

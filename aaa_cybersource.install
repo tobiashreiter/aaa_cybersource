@@ -93,3 +93,24 @@ function aaa_cybersource_update_9002() {
     }
   }
 }
+
+/**
+ * Add receipt_sent field.
+ */
+function aaa_cybersource_update_9003() {
+  $receipt = BaseFieldDefinition::create('boolean')
+    ->setLabel(t('Receipt sent?'))
+    ->setDescription(t('Whether the site has sent a receipt via email.'))
+    ->setDisplayOptions('view', [
+      'type' => 'boolean',
+      'label' => 'above',
+      'weight' => 7,
+      'settings' => [
+        'format' => 'yes-no',
+      ],
+    ])
+    ->setDisplayConfigurable('view', TRUE);
+
+  $edum = \Drupal::entityDefinitionUpdateManager();
+  $edum->installFieldStorageDefinition('receipt_sent', 'payment', 'payment', $receipt);
+}
