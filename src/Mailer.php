@@ -84,7 +84,7 @@ class Mailer {
    * @param string $body
    *   The body of the message.
    */
-  public function sendMail($key, $to, $subject, $body, $bcc = TRUE) {
+  public function sendMail($key, $to, $subject, $body) {
     $global = $this->configFactory->get('aaa_cybersource.settings')->get('global');
     $current_langcode = $this->languageManager->getCurrentLanguage()->getId();
     if (isset($global['receipt_sender']) === TRUE) {
@@ -106,7 +106,7 @@ class Mailer {
         'from_name' => $site_name,
         'subject' => $subject,
         'body' => $body,
-        'bcc_mail' => $bcc === TRUE ? 'AAAGiving@si.edu' : '',
+        'bcc_mail' => 'AAAGiving@si.edu',
       ],
       $site_mail,
     );

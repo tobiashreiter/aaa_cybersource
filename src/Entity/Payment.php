@@ -376,19 +376,6 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ])
       ->setDisplayConfigurable('view', TRUE);
 
-    $fields['receipt_sent'] = BaseFieldDefinition::create('boolean')
-      ->setLabel(t('Receipt sent?'))
-      ->setDescription(t('Whether the site has sent a receipt via email.'))
-      ->setDisplayOptions('view', [
-        'type' => 'boolean',
-        'label' => 'above',
-        'weight' => 7,
-        'settings' => [
-          'format' => 'yes-no',
-        ],
-      ])
-      ->setDisplayConfigurable('view', TRUE);
-
     return $fields;
   }
 
