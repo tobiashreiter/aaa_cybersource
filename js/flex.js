@@ -112,9 +112,21 @@
       event.target.classList.toggle('disabled', true)
       event.target.classList.toggle('submitting', true)
 
+      const expirationMonth = parseInt(document.querySelector('[data-drupal-selector="edit-expiration-month"]').value)
+        .toLocaleString('en-US', {
+          minimumIntegerDigits: 2,
+          useGrouping: false
+        })
+
+      const expirationYear = parseInt(document.querySelector('[data-drupal-selector="edit-expiration-year"]').value)
+        .toLocaleString('en-US', {
+          minimumIntegerDigits: 4,
+          useGrouping: false
+        })
+
       const options = {
-        expirationMonth: document.querySelector('[data-drupal-selector="edit-expiration-month"]').value,
-        expirationYear: document.querySelector('[data-drupal-selector="edit-expiration-year"]').value
+        expirationMonth: expirationMonth,
+        expirationYear: expirationYear
       }
 
       Drupal.behaviors.aaaWebformTemplates.microform.createToken(options, function(error, token) {
