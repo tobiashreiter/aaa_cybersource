@@ -140,8 +140,7 @@ class RecurringPayment {
     // Set up the payment request.
     $this->cybersourceClient->setEnvironment($environment);
 
-    $processingOptions = $this->cybersourceClient->createProcessingOptionsForRecurringPayment($payment_id);
-    $processingOptions->setCapture(TRUE);
+    $processingOptions = $this->cybersourceClient->createProcessingOptions($payment_id);
 
     $newCode = $code . '-' . ($recurring_payments_count + 1);
     $clientReferenceInformation = $this->cybersourceClient->createClientReferenceInformation([
@@ -203,6 +202,16 @@ class RecurringPayment {
     $newPayment->set('recurring_active', FALSE);
 
     if ($status === 'AUTHORIZED') {
+      // If authorized, then capture the payment.
+      $id = $newPaymentId;
+      $amount = $amount;
+      $code = $newCode;
+
+      $captureResponse = $this->cybersourceClient->capturePayment($id, $code, $amount);
+
+      $newPayment->set('secure_payment_id', $captureResponse->getId());
+      $newPayment->set('transaction_id', $captureResponse->getReconciliationId());
+      $newPayment->set('status', $captureResponse->getStatus());
     }
 
     // Save new payment entity.
