@@ -478,23 +478,14 @@ class CybersourceClient {
   }
 
   /**
-   * Creates processing options object.
-   *
-   * @return Ptsv2paymentsProcessingInformation
-   */
-  public function createProcessingOptions() {
-    return new Ptsv2paymentsProcessingInformation([]);
-  }
-
-  /**
    * Necessary for a MIT.
    *
    * @param string $previousId
    *   Set this value if this is a subsequent recurring payment.
    *
-   * @return Ptsv2paymentsProcessingInformation
+   * @return Ptsv2paymentsProcessingInformationAuthorizationOptionsInitiator
    */
-  public function createProcessingOptionsForRecurringPayment($previousId = '') {
+  public function createProcessingOptions($previousId = '') {
     // First MIT recurring payment.
     if (empty($previousId) === TRUE) {
       $subsequentPayment = FALSE;
