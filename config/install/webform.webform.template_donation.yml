@@ -207,6 +207,9 @@ elements: |-
       '#select2': true
       '#required': true
       '#required_error': 'Enter a valid expiry date'
+    recaptcha:
+      '#type': captcha
+      '#captcha_type': recaptcha/reCAPTCHA
     actions_01:
       '#type': webform_actions
       '#title': 'Submit Payment'
