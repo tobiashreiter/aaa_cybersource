@@ -243,6 +243,51 @@ function _add_receipt_alias(Webform $entity) {
  * Implements hook_cron().
  */
 function aaa_cybersource_cron() {
+  // Check for authorized but pending review.
+  $pending_review = \Drupal::entityQuery('payment')
+    ->condition('status', 'AUTHORIZED_PENDING_REVIEW')
+    ->execute();
+
+  $pening_review_payments = Payment::loadMultiple($pending_review);
+
+  $cybersourceClient = \Drupal::service('aaa_cybersource.cybersource_client');
+
+  foreach ($pening_review_payments as $payment) {
+    $paymentId = $payment->get('payment_id')->value;
+    $environment = $payment->get('environment')->value;
+
+    $cybersourceClient->setEnvironment($environment);
+
+    $transaction = $cybersourceClient->getTransaction($paymentId);
+
+    if (isset($transaction[0])) {
+      $links = $transaction[0]->getLinks()->getRelatedTransactions();
+
+      if (!is_null($links)) {
+        $href = $links[0]->getHref();
+
+        preg_match('/\d+$/', $href, $related_transactions);
+
+        if (count($related_transactions) > 0) {
+          $secure = $cybersourceClient->getTransaction($related_transactions[0]);
+
+          if (isset($secure[0])) {
+            $status = $secure[0]->getApplicationInformation()->getStatus();
+
+            if ($status === 'PENDING') {
+              $payment->set('secure_payment_id', $secure[0]->getId());
+              $payment->set('transaction_id', $secure[0]->getReconciliationId());
+              $payment->set('status', $status);
+  
+              $payment->save();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Check for recurring.
   $recurring = \Drupal::service('aaa_cybersource.recurring_payment');
 
   $payment_ids = $recurring->query();
