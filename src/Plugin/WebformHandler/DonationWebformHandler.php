@@ -285,12 +285,15 @@ class DonationWebformHandler extends WebformHandlerBase {
     }
 
     // Processing option to recurring payments.
-    $processingOptions = [];
+    $processingOptions = $this->cybersourceClient->createProcessingOptions();
     $isRecurring = FALSE;
     if (isset($data['recurring']) && $data['recurring'] == TRUE) {
       $isRecurring = TRUE;
-      $processingOptions = $this->cybersourceClient->createProcessingOptions();
+      $processingOptions = $this->cybersourceClient->createProcessingOptionsForRecurringPayment();
     }
+
+    // Capture when authorized in same transaction.
+    $processingOptions->setCapture(TRUE);
 
     // Client generated code.
     $prefix = $this->getCodePrefix();
@@ -446,23 +449,6 @@ class DonationWebformHandler extends WebformHandlerBase {
       if ($this->configuration['email_receipt'] === TRUE) {
         $message = $message . PHP_EOL . '<p>You will receive an email copy of your receipt.</p>';
       }
-
-      // Capture payment.
-      $environment = $this->getFormEnvironment();
-      $this->cybersourceClient->setEnvironment($environment);
-
-      $payment_id = $form_state->getValue('payment_entity');
-      $payment = Payment::load($payment_id);
-      $id = $payment->get('payment_id')->value;
-      $amount = $payment->get('authorized_amount')->value;
-      $code = $payment->get('code')->value;
-
-      $captureResponse = $this->cybersourceClient->capturePayment($id, $code, $amount);
-
-      $payment->set('secure_payment_id', $captureResponse->getId());
-      $payment->set('transaction_id', $captureResponse->getReconciliationId());
-      $payment->set('status', $captureResponse->getStatus());
-      $payment->save();
 
       $this->webform->setSetting($confirmationMessageId, $message);
     }
