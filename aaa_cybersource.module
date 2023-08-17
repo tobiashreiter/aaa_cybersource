@@ -243,7 +243,7 @@ function _add_receipt_alias(Webform $entity) {
  * Implements hook_cron().
  */
 function aaa_cybersource_cron() {
-  // Check for authorized but pending review.
+  // Check for authorized pending review.
   $pending_review = \Drupal::entityQuery('payment')
     ->condition('status', 'AUTHORIZED_PENDING_REVIEW')
     ->execute();
@@ -284,6 +284,36 @@ function aaa_cybersource_cron() {
           }
         }
       }
+    }
+  }
+
+  // Check for transmitted payments.
+  $pending_transmission = \Drupal::entityQuery('payment')
+    ->condition('status', ['AUTHORIZED', 'PENDING'], 'IN')
+    ->execute();
+
+  $pending_transmission_payments = Payment::loadMultiple($pending_transmission);
+
+  foreach ($pending_transmission_payments as $payment) {
+    $paymentId = $payment->get('secure_payment_id')->value;
+
+    if (is_null($paymentId)) {
+      $paymentId = $payment->get('payment_id')->value;
+    }
+
+    $currentStatus = $payment->get('status')->value;
+
+    $environment = $payment->get('environment')->value;
+
+    $cybersourceClient->setEnvironment($environment);
+
+    $transaction = $cybersourceClient->getTransaction($paymentId);
+
+    $status = $transaction[0]->getApplicationInformation()->getStatus();
+
+    if (is_null($status) !== TRUE && $status !== $currentStatus) {
+      $payment->set('status', $status);
+      $payment->save();
     }
   }
 
