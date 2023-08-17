@@ -31,6 +31,7 @@ use CyberSource\Model\Ptsv2paymentsProcessingInformation;
 use CyberSource\Model\Ptsv2paymentsOrderInformationBillTo;
 use CyberSource\Model\Ptsv2paymentsOrderInformationShipTo;
 use CyberSource\Model\Ptsv2paymentsClientReferenceInformation;
+use CyberSource\Model\Ptsv2paymentsMerchantDefinedInformation;
 use CyberSource\Model\Ptsv2paymentsPaymentInformationCustomer;
 use CyberSource\Model\Ptsv2paymentsOrderInformationAmountDetails;
 use CyberSource\Model\Tmsv2customersEmbeddedDefaultPaymentInstrumentCard;
@@ -807,6 +808,30 @@ class CybersourceClient {
 
       return '';
     }
+  }
+
+  /**
+   * Creates merchant defined information for the payment request.
+   *
+   * @param array $information
+   *
+   * @return Ptsv2paymentsMerchantDefinedInformation[] $return
+   */
+  public function createMerchantDefinedInformation(array $information) {
+    $return = [];
+
+    // Cybersource index starts at 1, ignore existing keys.
+    $i = 1;
+    foreach ($information as $key => $value) {
+      $return[] = new Ptsv2paymentsMerchantDefinedInformation([
+        'key' => $i,
+        'value' => $value,
+      ]);
+
+      $i++;
+    }
+
+    return $return;
   }
 
   /**

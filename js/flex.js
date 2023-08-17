@@ -156,6 +156,28 @@
             document.querySelector('#cvn-notification').innerHTML = 'Payment platform has not loaded.'
             Drupal.behaviors.aaaWebformTemplates.securityCode._container.classList.toggle('is-invalid', true)
           }
+          else if (error.reason && error.reason === 'CREATE_TOKEN_VALIDATION_SERVERSIDE') {
+            error.details.forEach(function(detail) {
+              const location = detail.location
+              const message = detail.message
+
+              if (location === 'expirationYear') {
+                const elementParent = document.querySelector('.form-item-expiration-year')
+                const notify = document.createElement('div')
+                notify.setAttribute('role', 'alert')
+                notify.innerHTML = message
+                notify.style.color = 'red'
+                elementParent.appendChild(notify)
+              } else if (location === 'expirationMonth') {
+                const elementParent = document.querySelector('.form-item-expiration-month')
+                const notify = document.createElement('div')
+                notify.setAttribute('role', 'alert')
+                notify.innerHTML = message
+                notify.style.color = 'red'
+                elementParent.appendChild(notify)
+              }
+            })
+          }
           else {
             console.error(error)
           }

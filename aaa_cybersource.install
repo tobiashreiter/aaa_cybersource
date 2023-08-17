@@ -82,7 +82,9 @@ function aaa_cybersource_update_9002() {
 
     $cybersourceClient->setEnvironment($environment);
 
-    $captureResponse = $cybersourceClient->capturePayment($id, $code, $amount);
+    // Don't run this again.
+    // $captureResponse = $cybersourceClient->capturePayment($id, $code, $amount);
+    $captureResponse = NULL;
 
     if (!empty($captureResponse)) {
       $payment->set('secure_payment_id', $captureResponse->getId());
@@ -92,4 +94,25 @@ function aaa_cybersource_update_9002() {
       $payment->save();
     }
   }
+}
+
+/**
+ * Add purchase information field.
+ */
+function aaa_cybersource_update_9004() {
+  $orderDetails = BaseFieldDefinition::create('string')
+    ->setLabel(t('Order details'))
+    ->setDescription(t('Specific details regarding the order. Important for Gala tickets.'))
+    ->setDisplayOptions('view', [
+      'type' => 'string',
+      'label' => 'above',
+      'weight' => 2,
+      'settings' => [
+        'link_to_entity' => FALSE,
+      ],
+    ])
+    ->setDisplayConfigurable('view', TRUE);
+
+  $edum = \Drupal::entityDefinitionUpdateManager();
+  $edum->installFieldStorageDefinition('order_details', 'payment', 'payment', $orderDetails);
 }

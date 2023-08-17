@@ -308,6 +308,41 @@ class Receipts {
       ]),
     ];
 
+    if ($donationType === 'GALA') {
+      $build['order_details'] = [
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['order-details'],
+        ],
+      ];
+
+      $build['order_details']['title'] = [
+        '#type' => 'html_tag',
+        '#tag' => 'h2',
+        '#value' => t('Order Details'),
+      ];
+
+      $build['order_details']['content'] = [
+        '#type' => 'container',
+      ];
+
+      $details = explode('; ', $payment->get('order_details')->value);
+
+      foreach ($details as $i => $detail) {
+        $build['order_details']['content'][$i] = [
+          '#type' => 'html_tag',
+          '#tag' => 'div',
+          '#value' => $detail,
+        ];
+
+        if ($i === count($details) - 1) {
+          $build['order_details']['content'][$i]['#attributes'] = [
+            'style' => ['margin-bottom: 25px'],
+          ];
+        }
+      }
+    }
+
     $build['total'] = [
       '#type' => 'container',
     ];
@@ -318,7 +353,7 @@ class Receipts {
       '#value' => t('Total Amount'),
     ];
 
-    $amount = strpos($amountDetails->getTotalAmount(), '.') > 0 ? $amountDetails->getTotalAmount() : $amountDetails->getTotalAmount() . '.00';
+    $amount = number_format($amountDetails->getTotalAmount(), 2);
     $build['total']['amount'] = [
       '#type' => 'html_tag',
       '#tag' => 'div',
@@ -380,14 +415,13 @@ class Receipts {
    */
   public function buildReceiptEmailBody(Payment $payment, $billTo, $paymentInformation, $amountDetails, $datetime) {
     $card = $paymentInformation->getCard();
-    $amount = strpos($amountDetails->getAuthorizedAmount(), '.') > 0 ? $amountDetails->getAuthorizedAmount() : $amountDetails->getAuthorizedAmount() . '.00';
-
+    $amount = number_format($amountDetails->getAuthorizedAmount(), 2);
     $donationType = strpos($payment->get('code')->value, 'GALA') > -1 ? 'GALA' : 'DONATION';
 
     $body = '';
 
     $body .= "
-      Thank you for your support of the Archives of American Art.
+Thank you for your support of the Archives of American Art.
 
       RECEIPT
 
@@ -420,25 +454,45 @@ class Receipts {
       {$billTo->getEmail()}
       {$billTo->getPhoneNumber()}
 
+      ------------------------------------
+
       PAYMENT DETAILS
+
       Card Type {$this->cardTypeNumberToString($card->getType())}
       Card Number xxxxxxxxxxxxx{$card->getSuffix()}
       Expiration {$card->getExpirationMonth()}-{$card->getExpirationYear()}
 
+      ------------------------------------
+      ";
+
+    if ($donationType === 'GALA') {
+    $details = explode('; ', $payment->get('order_details')->value);
+
+    $body .= "
+      ORDER DETAILS
+    ";
+
+    foreach ($details as $detail) {
+    $body .= "
+      {$detail}
+    ";
+    }
+    }
+
+    $body .= "
       TOTAL AMOUNT
+
       $ {$amount}
       ";
 
     if ($donationType === 'DONATION') {
     $body .= "
-
-      Thank you for supporting the Archives of American Art. By giving to the Archives, you are helping to ensure that significant records and untold stories documenting the history of art in America are collected, preserved, and shared with the world. Unless you opted out of receiving it, donors of at least $250 will receive the Archives of American Art Journal, with goods and services valued at $35. Gifts less than $250 or greater than $1,750 are fully tax deductible. Should you have any questions about your donation, you can reach us at AAAGiving@si.edu or (202) 633-7989.
+Thank you for supporting the Archives of American Art. By giving to the Archives, you are helping to ensure that significant records and untold stories documenting the history of art in America are collected, preserved, and shared with the world. Unless you opted out of receiving it, donors of at least $250 will receive the Archives of American Art Journal, with goods and services valued at $35. Gifts less than $250 or greater than $1,750 are fully tax deductible. Should you have any questions about your donation, you can reach us at AAAGiving@si.edu or (202) 633-7989.
       ";
     }
     else if ($donationType === 'GALA') {
     $body .= "
-
-      Thank you for your support of the 2023 Archives of American Art Gala.  The estimated fair-market value of goods and services for table purchases is $4,060 for Benefactor, $3,285 for Patron, and $2,635 for Partner. Fair-market value for all ticket purchases is $360.  If you have any questions about your gift, please contact us at AAAGala@si.edu or (202) 633-7989.  We look forward to seeing you in New York City on Tuesday, October 24.
+Thank you for your support of the 2023 Archives of American Art Gala.  The estimated fair-market value of goods and services for table purchases is $4,060 for Benefactor, $3,285 for Patron, and $2,635 for Partner. Fair-market value for all ticket purchases is $360.  If you have any questions about your gift, please contact us at AAAGala@si.edu or (202) 633-7989.  We look forward to seeing you in New York City on Tuesday, October 24.
       ";
     }
 

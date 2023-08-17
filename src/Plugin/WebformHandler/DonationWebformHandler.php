@@ -244,10 +244,13 @@ class DonationWebformHandler extends WebformHandlerBase {
       'email',
     ];
 
+    // Checks for necessary fields on the Gala and Direction fields.
     $checkGala = ['gala'];
+    $isGala = TRUE;
     $this->necessaryFieldCheck($checkGala, $elements);
     if (count($checkGala) > 0) {
       $necessary_fields[] = 'direction';
+      $isGala = FALSE;
     }
 
     $this->necessaryFieldCheck($necessary_fields, $elements);
@@ -355,6 +358,32 @@ class DonationWebformHandler extends WebformHandlerBase {
       'tokenInformation' => $tokenInformation,
     ];
 
+    // Set Merchant defined information for Gala table.
+    if ($isGala === TRUE) {
+      $merchantDefinedDataKeyValue = [];
+      $paymentOrderDetails = [];
+
+      $i = 1;
+      while (isset($data['gala_0' . $i . '_quantity']) === TRUE) {
+        $twoDigitKey = '0' . $i;
+        $ticketQuantity = $data['gala_' . $twoDigitKey . '_quantity'] > 0 ? $data['gala_' . $twoDigitKey . '_quantity'] : '';
+        $galaTable = $form['elements']['tickets']['gala'];
+        $ticketName = $galaTable['gala_' . $twoDigitKey]['gala_' . $twoDigitKey . '_ticket_level']['#markup'];
+        $ticketAmount = $galaTable['gala_' . $twoDigitKey]['gala_' . $twoDigitKey . '_amount']['#markup'];
+
+        $merchantDefinedDataKeyValue[] = $ticketName . ' , Quantity: ' . $ticketQuantity;
+
+        if ($ticketQuantity > 0) {
+          $paymentOrderDetails[] = $ticketName . ' , Quantity: ' . $ticketQuantity . ', at: ' . $ticketAmount;
+        }
+
+        $i++;
+      }
+
+      $merchantDefinedInformation = $this->cybersourceClient->createMerchantDefinedInformation($merchantDefinedDataKeyValue);
+      $requestParameters['merchantDefinedInformation'] = $merchantDefinedInformation;
+    }
+
     $payRequest = $this->cybersourceClient->createPaymentRequest($requestParameters);
 
     $payResponse = $this->cybersourceClient->createPayment($payRequest);
@@ -401,6 +430,10 @@ class DonationWebformHandler extends WebformHandlerBase {
     $payment->set('recurring', $isRecurring);
     $payment->set('environment', $environment);
     $payment->set('recurring_active', FALSE);
+
+    if ($isGala === TRUE) {
+      $payment->set('order_details', implode('; ', $paymentOrderDetails));
+    }
 
     if ($isRecurring === TRUE && $declined !== TRUE) {
       $tokens = $payResponse[0]->getTokenInformation();

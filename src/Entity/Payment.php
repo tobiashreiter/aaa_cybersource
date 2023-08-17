@@ -376,6 +376,19 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ])
       ->setDisplayConfigurable('view', TRUE);
 
+    $fields['order_details'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Order details'))
+      ->setDescription(t('Specific details regarding the order. Important for Gala tickets.'))
+      ->setDisplayOptions('view', [
+        'type' => 'string',
+        'label' => 'above',
+        'weight' => 2,
+        'settings' => [
+          'link_to_entity' => FALSE,
+        ],
+      ])
+      ->setDisplayConfigurable('view', TRUE);
+
     return $fields;
   }
 
