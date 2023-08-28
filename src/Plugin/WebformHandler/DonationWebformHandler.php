@@ -393,11 +393,15 @@ class DonationWebformHandler extends WebformHandlerBase {
 
       if ($data['memorial_honorary_gifts'] == TRUE) {
         $paymentOrderDetails[] = $merchantDefinedDataKeyValue[] = 'Make this gift in ' . strtolower($data['honor_field']) . ' ' . $data['honoree']['first'] . ' ' . $data['honoree']['last'];
-        $paymentOrderDetails[] = $merchantDefinedDataKeyValue[] = 'Recipient email ' . $data['honoree_email'];
+        $paymentOrderDetails[] = $merchantDefinedDataKeyValue[] = 'In ' . ucwords($data['honor_field']) . ' recipient email: ' . $data['honoree_email'];
       }
 
       if ($data['no_journal'] == TRUE) {
         $paymentOrderDetails[] = $merchantDefinedDataKeyValue[] = 'I do not wish to receive the Archives of American Art Journal. I understand that no goods and services will be received for my donation, making it fully tax deductible.';
+      }
+
+      if ($data['recurring'] == TRUE) {
+        $paymentOrderDetails[] = $merchantDefinedDataKeyValue[] = 'This is a monthly recurring transaction.';
       }
 
       if (count($merchantDefinedDataKeyValue) > 0) {
