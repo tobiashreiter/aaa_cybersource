@@ -358,10 +358,10 @@ class DonationWebformHandler extends WebformHandlerBase {
       'tokenInformation' => $tokenInformation,
     ];
 
-    // Set Merchant defined information for Gala table.
+    // Set Merchant defined information.
+    $paymentOrderDetails = [];
     if ($isGala === TRUE) {
       $merchantDefinedDataKeyValue = [];
-      $paymentOrderDetails = [];
 
       $i = 1;
       while (isset($data['gala_0' . $i . '_quantity']) === TRUE) {
@@ -382,6 +382,28 @@ class DonationWebformHandler extends WebformHandlerBase {
 
       $merchantDefinedInformation = $this->cybersourceClient->createMerchantDefinedInformation($merchantDefinedDataKeyValue);
       $requestParameters['merchantDefinedInformation'] = $merchantDefinedInformation;
+    }
+    // Donation form
+    else  {
+      $merchantDefinedDataKeyValue = [];
+
+      if ($data['direction']) {
+        $paymentOrderDetails[] = $merchantDefinedDataKeyValue[] = 'Please direct my gift towards ' . $data['direction'];
+      }
+
+      if ($data['memorial_honorary_gifts'] == TRUE) {
+        $paymentOrderDetails[] = $merchantDefinedDataKeyValue[] = 'Make this gift in ' . strtolower($data['honor_field']) . ' ' . $data['honoree']['first'] . ' ' . $data['honoree']['last'];
+        $paymentOrderDetails[] = $merchantDefinedDataKeyValue[] = 'Recipient email ' . $data['honoree_email'];
+      }
+
+      if ($data['no_journal'] == TRUE) {
+        $paymentOrderDetails[] = $merchantDefinedDataKeyValue[] = 'I do not wish to receive the Archives of American Art Journal. I understand that no goods and services will be received for my donation, making it fully tax deductible.';
+      }
+
+      if (count($merchantDefinedDataKeyValue) > 0) {
+        $merchantDefinedInformation = $this->cybersourceClient->createMerchantDefinedInformation($merchantDefinedDataKeyValue);
+        $requestParameters['merchantDefinedInformation'] = $merchantDefinedInformation;
+      }
     }
 
     $payRequest = $this->cybersourceClient->createPaymentRequest($requestParameters);
@@ -431,8 +453,8 @@ class DonationWebformHandler extends WebformHandlerBase {
     $payment->set('environment', $environment);
     $payment->set('recurring_active', FALSE);
 
-    if ($isGala === TRUE) {
-      $payment->set('order_details', implode('; ', $paymentOrderDetails));
+    if ($isGala === TRUE || isset($paymentOrderDetails)) {
+      $payment->set('order_details_long', implode('; ', $paymentOrderDetails));
     }
 
     if ($isRecurring === TRUE && $declined !== TRUE) {

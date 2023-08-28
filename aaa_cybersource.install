@@ -116,3 +116,37 @@ function aaa_cybersource_update_9004() {
   $edum = \Drupal::entityDefinitionUpdateManager();
   $edum->installFieldStorageDefinition('order_details', 'payment', 'payment', $orderDetails);
 }
+
+/**
+ * Order details needs a different field type.
+ */
+function aaa_cybersource_update_9006() {
+  // Install new field.    
+  $orderDetails = BaseFieldDefinition::create('string_long')
+    ->setLabel(t('Order details'))
+    ->setDescription(t('Specific details regarding the order.'))
+    ->setDisplayOptions('view', [
+      'type' => 'string',
+      'label' => 'above',
+      'weight' => 2,
+    ])
+    ->setDisplayConfigurable('view', TRUE);
+
+  $edum = \Drupal::entityDefinitionUpdateManager();
+  $edum->installFieldStorageDefinition('order_details_long', 'payment', 'payment', $orderDetails);
+
+  // Collect existing data and add it to new field.
+  $payments_with_data = \Drupal::entityQuery('payment')
+  ->condition('order_details', NULL, 'IS NOT NULL')
+  ->sort('changed', 'DESC')
+  ->execute();
+
+  $payments = Payment::loadMultiple($payments_with_data);
+
+  foreach ($payments as $payment) {
+    $currentOrderDetailsValue = $payment->get('order_details')->value;
+    $payment->set('order_details_long', $currentOrderDetailsValue);
+    $payment->save();
+  }
+
+}

@@ -389,6 +389,16 @@ class Payment extends ContentEntityBase implements PaymentInterface {
       ])
       ->setDisplayConfigurable('view', TRUE);
 
+    $fields['order_details_long'] = BaseFieldDefinition::create('string_long')
+      ->setLabel(t('Order details'))
+      ->setDescription(t('Specific details regarding the order.'))
+      ->setDisplayOptions('view', [
+        'type' => 'string',
+        'label' => 'above',
+        'weight' => 2,
+      ])
+      ->setDisplayConfigurable('view', TRUE);
+
     return $fields;
   }
 

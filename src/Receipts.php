@@ -308,7 +308,7 @@ class Receipts {
       ]),
     ];
 
-    if ($donationType === 'GALA') {
+    if ($donationType === 'GALA' || !is_null($payment->get('order_details_long')->value)) {
       $build['order_details'] = [
         '#type' => 'container',
         '#attributes' => [
@@ -326,7 +326,7 @@ class Receipts {
         '#type' => 'container',
       ];
 
-      $details = explode('; ', $payment->get('order_details')->value);
+      $details = explode('; ', $payment->get('order_details_long')->value);
 
       foreach ($details as $i => $detail) {
         $build['order_details']['content'][$i] = [
@@ -465,8 +465,8 @@ Thank you for your support of the Archives of American Art.
       ------------------------------------
       ";
 
-    if ($donationType === 'GALA') {
-    $details = explode('; ', $payment->get('order_details')->value);
+    if ($donationType === 'GALA' || !is_null($payment->get('order_details_long')->value)) {
+    $details = explode('; ', $payment->get('order_details_long')->value);
 
     $body .= "
       ORDER DETAILS
