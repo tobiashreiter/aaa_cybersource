@@ -420,81 +420,78 @@ class Receipts {
 
     $body = '';
 
-    $body .= "
-Thank you for your support of the Archives of American Art.
+    if ($donationType === 'DONATION') {
+$body .= "
+Thank you for supporting the Archives of American Art. By giving to the Archives, you are helping to ensure that significant records and untold stories documenting the history of art in America are collected, preserved, and shared with the world. Unless you opted out of receiving it, donors of at least $250 will receive the Archives of American Art Journal, with goods and services valued at $35. Gifts less than $250 or greater than $1,750 are fully tax deductible. Should you have any questions about your donation, you can reach us at AAAGiving@si.edu or (202) 633-7989.
+";
+    } else if ($donationType === 'GALA') {
+$body .= "
+Thank you for your support of the 2023 Archives of American Art Gala.  The estimated fair-market value of goods and services for table purchases is $4,060 for Benefactor, $3,285 for Patron, and $2,635 for Partner. Fair-market value for all ticket purchases is $360.  If you have any questions about your gift, please contact us at AAAGala@si.edu or (202) 633-7989.  We look forward to seeing you in New York City on Tuesday, October 24.
+";
+    }
 
-      RECEIPT
+$body .= "
+RECEIPT
 
-      Date: {$this->dateFormatter->format(strtotime($datetime), 'long')}
-      Order Number: {$payment->get('code')->value}
+Date: {$this->dateFormatter->format(strtotime($datetime), 'long')}
+Order Number: {$payment->get('code')->value}
 
-      ------------------------------------
+------------------------------------
 
-      BILLING INFORMATION
+BILLING INFORMATION
 
-      {$billTo->getFirstName()} {$billTo->getLastName()}";
+{$billTo->getFirstName()} {$billTo->getLastName()}";
 
     if (!empty($billTo->getCompany())) {
-      $body .= "
-      {$billTo->getCompany()}";
+$body .= "
+{$billTo->getCompany()}";
     }
 
-    $body .= "
-      {$billTo->getAddress1()}";
+$body .= "
+{$billTo->getAddress1()}";
 
     if (!empty($billTo->getAddress2())) {
-      $body .= "
-      {$billTo->getAddress2()}";
+$body .= "
+{$billTo->getAddress2()}";
     }
 
-    $body .= "
-      {$billTo->getLocality()}
-      {$billTo->getAdministrativeArea()}
-      {$billTo->getPostalCode()}
-      {$billTo->getEmail()}
-      {$billTo->getPhoneNumber()}
+$body .= "
+{$billTo->getLocality()}
+{$billTo->getAdministrativeArea()}
+{$billTo->getPostalCode()}
+{$billTo->getEmail()}
+{$billTo->getPhoneNumber()}
 
-      ------------------------------------
+------------------------------------
 
-      PAYMENT DETAILS
+PAYMENT DETAILS
 
-      Card Type {$this->cardTypeNumberToString($card->getType())}
-      Card Number xxxxxxxxxxxxx{$card->getSuffix()}
-      Expiration {$card->getExpirationMonth()}-{$card->getExpirationYear()}
+Card Type {$this->cardTypeNumberToString($card->getType())}
+Card Number xxxxxxxxxxxxx{$card->getSuffix()}
+Expiration {$card->getExpirationMonth()}-{$card->getExpirationYear()}
 
-      ------------------------------------
-      ";
+------------------------------------
+";
 
     if ($donationType === 'GALA' || !is_null($payment->get('order_details_long')->value)) {
-    $details = explode('; ', $payment->get('order_details_long')->value);
+      $details = explode('; ', $payment->get('order_details_long')->value);
 
-    $body .= "
-      ORDER DETAILS
-    ";
+$body .= "
+ORDER DETAILS
+";
 
-    foreach ($details as $detail) {
-    $body .= "
-      {$detail}
-    ";
+      foreach ($details as $detail) {
+$body .= "
+{$detail}
+";
+      }
     }
-    }
 
-    $body .= "
-      TOTAL AMOUNT
+$body .= "
+TOTAL AMOUNT
 
-      $ {$amount}
-      ";
-
-    if ($donationType === 'DONATION') {
-    $body .= "
-Thank you for supporting the Archives of American Art. By giving to the Archives, you are helping to ensure that significant records and untold stories documenting the history of art in America are collected, preserved, and shared with the world. Unless you opted out of receiving it, donors of at least $250 will receive the Archives of American Art Journal, with goods and services valued at $35. Gifts less than $250 or greater than $1,750 are fully tax deductible. Should you have any questions about your donation, you can reach us at AAAGiving@si.edu or (202) 633-7989.
-      ";
-    }
-    else if ($donationType === 'GALA') {
-    $body .= "
-Thank you for your support of the 2023 Archives of American Art Gala.  The estimated fair-market value of goods and services for table purchases is $4,060 for Benefactor, $3,285 for Patron, and $2,635 for Partner. Fair-market value for all ticket purchases is $360.  If you have any questions about your gift, please contact us at AAAGala@si.edu or (202) 633-7989.  We look forward to seeing you in New York City on Tuesday, October 24.
-      ";
-    }
+$ {$amount}
+";
 
     return $body;
   }
