@@ -307,7 +307,18 @@ function aaa_cybersource_cron() {
 
     $cybersourceClient->setEnvironment($environment);
 
-    $transaction = $cybersourceClient->getTransaction($paymentId);
+    $transaction = $cybersourceClient->getTransaction($paymentId . 'abc');
+
+    if (!is_array($transaction) && get_class($transaction) === 'CyberSource\ApiException') {
+      $message = $transaction->getResponseBody()->message;
+      $response_message = $transaction->getMessage();
+      \Drupal::logger('aaa_cybersource')->error($message . ' on ' . $response_message . ' ');
+
+      continue;
+    }
+    else if (!is_array($transaction)) {
+      continue;
+    }
 
     $status = $transaction[0]->getApplicationInformation()->getStatus();
 
