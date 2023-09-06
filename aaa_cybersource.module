@@ -307,7 +307,7 @@ function aaa_cybersource_cron() {
 
     $cybersourceClient->setEnvironment($environment);
 
-    $transaction = $cybersourceClient->getTransaction($paymentId . 'abc');
+    $transaction = $cybersourceClient->getTransaction($paymentId);
 
     if (!is_array($transaction) && get_class($transaction) === 'CyberSource\ApiException') {
       $message = $transaction->getResponseBody()->message;
