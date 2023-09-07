@@ -110,7 +110,16 @@
       event.preventDefault()
 
       event.target.classList.toggle('disabled', true)
+      event.target.setAttribute('disabled', true)
       event.target.classList.toggle('submitting', true)
+
+      const submittingElement = document.createElement('div')
+      submittingElement.setAttribute('id', 'submitting')
+      submittingElement.setAttribute('role', 'alert')
+      const submittingElementTextChild = document.createTextNode('Submitting payment, please wait.')
+      const buttonParent = event.target.parentElement
+      submittingElement.appendChild(submittingElementTextChild)
+      buttonParent.appendChild(submittingElement)
 
       const expirationMonth = parseInt(document.querySelector('[data-drupal-selector="edit-expiration-month"]').value)
         .toLocaleString('en-US', {
@@ -132,7 +141,12 @@
       Drupal.behaviors.aaaWebformTemplates.microform.createToken(options, function(error, token) {
         if (error) {
           event.target.classList.toggle('disabled', false)
+          event.target.removeAttribute('disabled')
           event.target.classList.toggle('submitting', false)
+
+          if (document.querySelector('#submitting')) {
+            document.querySelector('#submitting').remove()
+          }
 
           if (error.reason && error.reason === 'CREATE_TOKEN_VALIDATION_FIELDS') {
             const details = error.details
@@ -186,11 +200,6 @@
 
           if (document.querySelector('input[data-drupal-selector="token"]').value.length > 0) {
             document.querySelector('form.webform-submission-form').submit()
-          } else {
-            // Wait.
-            setTimeout(function() {
-              document.querySelector('input[data-drupal-selector="token"]').value
-            }, 250)
           }
         }
       })
