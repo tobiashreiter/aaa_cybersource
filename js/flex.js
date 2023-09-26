@@ -2,6 +2,7 @@
   Drupal.behaviors.aaaWebformTemplates = {
     attach: async function(context, settings) {
       // Sets up the Microform.
+      Drupal.behaviors.aaaWebformTemplates.formName = context.querySelector('.webform-submission-form').getAttribute('title')
       const json = await Drupal.behaviors.aaaWebformTemplates.fetchToken()
       const flex = new Flex(json);
       const myStyles = {
@@ -17,6 +18,13 @@
       }
       const microform = flex.microform({ styles: myStyles })
       const number = microform.createField('number', { placeholder: 'Enter card number' })
+      // If Credit Card number loads correctly, remove message element.
+      number.on('load', function(err) {
+        button.removeAttribute('disabled')
+        button.classList.toggle('disabled', false)
+        document.querySelector('#not-loaded-warning').remove()
+        Drupal.behaviors.aaaWebformTemplates.log(`${Drupal.behaviors.aaaWebformTemplates.formName} loaded`)
+      })
       const securityCode = microform.createField('securityCode', { placeholder: '•••' })
 
       // Use some logic to prevent form from submitting when Cybersource fails to load.
@@ -32,15 +40,12 @@
         const buttonParent = button.parentElement
         notLoadedElement.appendChild(notLoadedElementTextChild)
         buttonParent.appendChild(notLoadedElement)
-
-        // If Credit Card number loads correctly, remove message element.
-        number.on('load', function(err) {
-          button.removeAttribute('disabled')
-          button.classList.toggle('disabled', false)
-          document.querySelector('#not-loaded-warning').remove()
-        })
       }
 
+      // Check for .is-required fields
+      if (context.querySelectorAll('.is-invalid').length > 0) {
+        Drupal.behaviors.aaaWebformTemplates.log(`Submit ${Drupal.behaviors.aaaWebformTemplates.formName} error, reason ${context.querySelectorAll('.is-invalid').length} required fields missing`)
+      }
       // Identify the containers to replace.
       number.load('#edit-card-number')
       securityCode.load('#edit-cvn')
@@ -138,6 +143,8 @@
         expirationYear: expirationYear
       }
 
+      Drupal.behaviors.aaaWebformTemplates.log(`Submitting ${Drupal.behaviors.aaaWebformTemplates.formName}`)
+
       Drupal.behaviors.aaaWebformTemplates.microform.createToken(options, function(error, token) {
         if (error) {
           event.target.classList.toggle('disabled', false)
@@ -148,29 +155,38 @@
             document.querySelector('#submitting').remove()
           }
 
+          // https://developer.cybersource.com/docs/cybs/en-us/digital-accept-flex/developer/all/rest/digital-accept-flex/microform-integ-v2/api-reference-v2/class-microform-error-v2.html
           if (error.reason && error.reason === 'CREATE_TOKEN_VALIDATION_FIELDS') {
             const details = error.details
+
+            Drupal.behaviors.aaaWebformTemplates.log(`Submit ${Drupal.behaviors.aaaWebformTemplates.formName} error, reason ${error.reason}`)
 
             // Handle errors.
             details.forEach(function(d) {
               if (d.location === 'number') {
                 document.querySelector('#card-number-notification').innerHTML = 'Validation error. Check that the credit card number is valid.'
                 Drupal.behaviors.aaaWebformTemplates.number._container.classList.toggle('is-invalid', true)
+                Drupal.behaviors.aaaWebformTemplates.log(`reason ${error.reason}, input credit card number`)
+
               }
 
               if (d.location === 'securityCode') {
                 document.querySelector('#cvn-notification').innerHTML = 'Validation error. Check that the credit card CVN is valid.'
                 Drupal.behaviors.aaaWebformTemplates.securityCode._container.classList.toggle('is-invalid', true)
+                Drupal.behaviors.aaaWebformTemplates.log(`reason ${error.reason}, input cvn`)
               }
             })
           }
           else if (error.reason && error.reason === 'CREATE_TOKEN_NO_FIELDS_LOADED') {
+            Drupal.behaviors.aaaWebformTemplates.log(`Submit ${Drupal.behaviors.aaaWebformTemplates.formName} error, reason ${error.reason}`)
             document.querySelector('#card-number-notification').innerHTML = 'Payment platform has not loaded.'
             Drupal.behaviors.aaaWebformTemplates.number._container.classList.toggle('is-invalid', true)
             document.querySelector('#cvn-notification').innerHTML = 'Payment platform has not loaded.'
             Drupal.behaviors.aaaWebformTemplates.securityCode._container.classList.toggle('is-invalid', true)
           }
           else if (error.reason && error.reason === 'CREATE_TOKEN_VALIDATION_SERVERSIDE') {
+            Drupal.behaviors.aaaWebformTemplates.log(`Submit ${Drupal.behaviors.aaaWebformTemplates.formName} error, reason ${error.reason}`)
+
             error.details.forEach(function(detail) {
               const location = detail.location
               const message = detail.message
@@ -182,6 +198,7 @@
                 notify.innerHTML = message
                 notify.style.color = 'red'
                 elementParent.appendChild(notify)
+                Drupal.behaviors.aaaWebformTemplates.log(`reason ${error.reason}, message ${message}`)
               } else if (location === 'expirationMonth') {
                 const elementParent = document.querySelector('.form-item-expiration-month')
                 const notify = document.createElement('div')
@@ -189,20 +206,37 @@
                 notify.innerHTML = message
                 notify.style.color = 'red'
                 elementParent.appendChild(notify)
+                Drupal.behaviors.aaaWebformTemplates.log(`reason ${error.reason}, message ${message}`)
               }
             })
           }
           else {
             console.error(error)
+            Drupal.behaviors.aaaWebformTemplates.log(`Submit ${Drupal.behaviors.aaaWebformTemplates.formName} error, reason ${error.reason}`)
           }
         } else {
           document.querySelector('input[data-drupal-selector="token"]').value = token
 
+          Drupal.behaviors.aaaWebformTemplates.log(`Submit Form Flex Microform SUCCESS.`)
           if (document.querySelector('input[data-drupal-selector="token"]').value.length > 0) {
             document.querySelector('form.webform-submission-form').submit()
           }
         }
       })
-    }
+    },
+    log: function(message) {
+      if (drupalSettings.aaa_cybersource.logging === true) {
+        fetch('/api/cybersource/logging', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: message
+          })
+        })
+      }
+    },
+    formName: '',
   }
 })(Drupal, drupalSettings, Flex)

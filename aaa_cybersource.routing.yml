@@ -60,3 +60,10 @@ entity.payment.settings:
     _title: 'Payment'
   requirements:
     _permission: 'administer payment'
+aaa_cybersource.logging:
+  path: '/api/cybersource/logging'
+  defaults:
+    _title: 'Logging'
+    _controller: '\Drupal\aaa_cybersource\Controller\CybersourceLogging::logMessage'
+  requirements:
+    _permission: 'access content'

@@ -112,6 +112,7 @@ function aaa_cybersource_webform_submission_form_alter(array &$form, FormStateIn
     }
 
     $form['#attached']['drupalSettings']['aaa_cybersource']['webform'] = $form['#webform_id'];
+    $form['#attached']['drupalSettings']['aaa_cybersource']['logging'] = (bool) $config->get('global')['logging'] ?? FALSE;
   }
 }
 
