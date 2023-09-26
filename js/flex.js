@@ -23,7 +23,7 @@
         button.removeAttribute('disabled')
         button.classList.toggle('disabled', false)
         document.querySelector('#not-loaded-warning').remove()
-        Drupal.behaviors.aaaWebformTemplates.log(`${Drupal.behaviors.aaaWebformTemplates.formName} loaded`)
+        Drupal.behaviors.aaaWebformTemplates.log(`Flex microform on ${Drupal.behaviors.aaaWebformTemplates.formName} loaded`)
       })
       const securityCode = microform.createField('securityCode', { placeholder: '•••' })
 
@@ -90,6 +90,13 @@
           i.setAttribute('aria-invalid', false)
         })
       }
+
+      // If after 15s the not-loaded-warning persists, log it.
+      setTimeout(function() {
+        if (document.querySelector('#not-loaded-warning') !== null) {
+          Drupal.behaviors.aaaWebformTemplates.log(`Flex microform on ${Drupal.behaviors.aaaWebformTemplates.formName} did not load after 15s.`)
+        }
+      }, 15000)
     },
     fetchToken: async function() {
       let webform_id = drupalSettings.aaa_cybersource.webform
@@ -160,6 +167,7 @@
             const details = error.details
 
             Drupal.behaviors.aaaWebformTemplates.log(`Submit ${Drupal.behaviors.aaaWebformTemplates.formName} error, reason ${error.reason}`)
+            Drupal.behaviors.aaaWebformTemplates.log(`User Agent ${navigator.userAgent}`)
 
             // Handle errors.
             details.forEach(function(d) {
@@ -167,7 +175,6 @@
                 document.querySelector('#card-number-notification').innerHTML = 'Validation error. Check that the credit card number is valid.'
                 Drupal.behaviors.aaaWebformTemplates.number._container.classList.toggle('is-invalid', true)
                 Drupal.behaviors.aaaWebformTemplates.log(`reason ${error.reason}, input credit card number`)
-
               }
 
               if (d.location === 'securityCode') {
@@ -179,6 +186,7 @@
           }
           else if (error.reason && error.reason === 'CREATE_TOKEN_NO_FIELDS_LOADED') {
             Drupal.behaviors.aaaWebformTemplates.log(`Submit ${Drupal.behaviors.aaaWebformTemplates.formName} error, reason ${error.reason}`)
+            Drupal.behaviors.aaaWebformTemplates.log(`User Agent ${navigator.userAgent}`)
             document.querySelector('#card-number-notification').innerHTML = 'Payment platform has not loaded.'
             Drupal.behaviors.aaaWebformTemplates.number._container.classList.toggle('is-invalid', true)
             document.querySelector('#cvn-notification').innerHTML = 'Payment platform has not loaded.'
@@ -186,6 +194,7 @@
           }
           else if (error.reason && error.reason === 'CREATE_TOKEN_VALIDATION_SERVERSIDE') {
             Drupal.behaviors.aaaWebformTemplates.log(`Submit ${Drupal.behaviors.aaaWebformTemplates.formName} error, reason ${error.reason}`)
+            Drupal.behaviors.aaaWebformTemplates.log(`User Agent ${navigator.userAgent}`)
 
             error.details.forEach(function(detail) {
               const location = detail.location
@@ -213,6 +222,7 @@
           else {
             console.error(error)
             Drupal.behaviors.aaaWebformTemplates.log(`Submit ${Drupal.behaviors.aaaWebformTemplates.formName} error, reason ${error.reason}`)
+            Drupal.behaviors.aaaWebformTemplates.log(`User Agent ${navigator.userAgent}`)
           }
         } else {
           document.querySelector('input[data-drupal-selector="token"]').value = token
