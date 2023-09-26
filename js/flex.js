@@ -174,13 +174,13 @@
               if (d.location === 'number') {
                 document.querySelector('#card-number-notification').innerHTML = 'Validation error. Check that the credit card number is valid.'
                 Drupal.behaviors.aaaWebformTemplates.number._container.classList.toggle('is-invalid', true)
-                Drupal.behaviors.aaaWebformTemplates.log(`reason ${error.reason}, input credit card number`)
+                Drupal.behaviors.aaaWebformTemplates.log(`reason ${error.reason}, Validation error. Check that the credit card number is valid.`)
               }
 
               if (d.location === 'securityCode') {
                 document.querySelector('#cvn-notification').innerHTML = 'Validation error. Check that the credit card CVN is valid.'
                 Drupal.behaviors.aaaWebformTemplates.securityCode._container.classList.toggle('is-invalid', true)
-                Drupal.behaviors.aaaWebformTemplates.log(`reason ${error.reason}, input cvn`)
+                Drupal.behaviors.aaaWebformTemplates.log(`reason ${error.reason}, Validation error. Check that the credit card CVN is valid.`)
               }
             })
           }
