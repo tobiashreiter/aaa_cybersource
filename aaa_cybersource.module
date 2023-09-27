@@ -425,3 +425,49 @@ function aaa_cybersource_card_type_number_to_string(string $code) {
   return $codes[$code];
 }
 
+/**
+ * Format amounts which may contain symbols like commas.
+ *
+ * @param integer|float|string $form_amount
+ * @return string $new_amount
+ */
+function aaa_cybersource_format_amount($form_amount) {
+  $new_amount = (string) $form_amount;
+  $form_amount_cents = '00';
+
+  if (is_null($form_amount) || empty($form_amount)) {
+    return 0;
+  }
+
+  $form_amount_array = explode('.', (string) $form_amount);
+
+  // Malformed currency amount: multiple decimals.
+  if (count($form_amount_array) > 2) {
+    return 0;
+  }
+  else if (count($form_amount_array) === 2) {
+    $form_amount_cents = $form_amount_array[1];
+
+    // Malformed cents: not equal to 2.
+    if ($form_amount_cents != '0' && strlen($form_amount_cents) !== 2) {
+      return 0;
+    }
+    else if ($form_amount_cents === '0') {
+      $form_amount_cents = '00';
+    }
+  }
+
+  $form_amount_dollars = $form_amount_array[0];
+
+  if (empty($form_amount_dollars)) {
+    return 0;
+  }
+
+  // strip any commas
+  preg_match_all('/\d+/', $form_amount_dollars, $form_amount_dollars_array);
+  $amount_dollars = implode('', $form_amount_dollars_array[0]);
+
+  $new_amount = $amount_dollars . '.' . $form_amount_cents;
+
+  return (string) $new_amount;
+}

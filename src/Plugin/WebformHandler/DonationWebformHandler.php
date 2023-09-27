@@ -266,9 +266,10 @@ class DonationWebformHandler extends WebformHandlerBase {
 
     // Set up client and prepare data.
     $data = $webform_submission->getData();
+    $form_amount = aaa_cybersource_format_amount($data['amount']);
 
-    if (is_null($data['amount']) === TRUE || $data['amount'] < 1) {
-      $form_state->setErrorByName('amount', 'Please specify an amount.');
+    if (is_null($form_amount) === TRUE || $form_amount < 1) {
+      $form_state->setErrorByName('amount', 'Please specify a correct amount using only integers and decimals.');
 
       return;
     }
@@ -334,7 +335,7 @@ class DonationWebformHandler extends WebformHandlerBase {
       'code' => $data['code'],
     ]);
 
-    $amount = $this->formatAmountFromWebformData($data['amount']);
+    $amount = $this->formatAmountFromWebformData(aaa_cybersource_format_amount($data['amount']));
     $amountDetails = $this->cybersourceClient->createOrderInformationAmountDetails([
       'totalAmount' => $amount,
       'currency' => 'USD',
