@@ -281,6 +281,11 @@ function aaa_cybersource_cron() {
               $payment->set('status', $status);
 
               $payment->save();
+
+              // Payment settled, send receipt.
+              $to = $secure[0]->getOrderInformation()->getBillTo()->getEmail();
+              $receiptService =\Drupal::service('aaa_cybersource.receipts');
+              $receiptService->trySendReceipt($cybersourceClient, $payment, 'pending_review_settled_' . $payment->id(), $to);
             }
           }
         }
