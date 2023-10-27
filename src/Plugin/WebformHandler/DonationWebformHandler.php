@@ -429,6 +429,7 @@ class DonationWebformHandler extends WebformHandlerBase {
     $declined = FALSE;
 
     switch ($status) {
+      case 'AUTHORIZED_RISK_DECLINED':
       case 'DECLINED':
         $form_state->setError($form['elements']['payment_details'], 'Your payment request was declined.');
         $context = [
@@ -440,6 +441,11 @@ class DonationWebformHandler extends WebformHandlerBase {
 
       case 'INVALID_REQUEST':
         $form_state->setError($form['elements']['payment_details'], 'Your payment request was invalid.');
+        $declined = TRUE;
+        break;
+
+      case 'SERVER_ERROR':
+        $form_state->setError($form['elements']['payment_details'], 'There was a server error.');
         $declined = TRUE;
         break;
 
@@ -501,7 +507,7 @@ class DonationWebformHandler extends WebformHandlerBase {
     unset($data['microform_container']);
 
     // Add additional message to the confirmation.
-    if ($data['status'] === 'AUTHORIZED') {
+    if ($data['status'] === 'AUTHORIZED' || $data['status'] === 'PENDING') {
       $confirmationMessageId = 'confirmation_message';
       $defaultConfirmationMessage = $this->webform->getSetting($confirmationMessageId, '');
       $message = '<h2>Thank you.</h2><p>Your payment was authorized.<p>' . PHP_EOL . $defaultConfirmationMessage;
@@ -539,9 +545,13 @@ class DonationWebformHandler extends WebformHandlerBase {
 
       $data = $webform_submission->getData();
       $payment = $this->entityRepository->getActive('payment', $data['payment_entity']);
-      $key = $this->getWebform()->id() . '_' . $this->getHandlerId();
-      $to = $this->replaceTokens('[webform_submission:values:email]', $webform_submission, [], []);
-      $this->receiptHandler->trySendReceipt($this->cybersourceClient, $payment, $key, $to);
+
+      // Only send email in these cases.
+      if ($data['status'] === 'AUTHORIZED' || $data['status'] === 'PENDING' || $data['status'] === 'TRANSMITTED') {
+        $key = $this->getWebform()->id() . '_' . $this->getHandlerId();
+        $to = $this->replaceTokens('[webform_submission:values:email]', $webform_submission, [], []);
+        $this->receiptHandler->trySendReceipt($this->cybersourceClient, $payment, $key, $to);
+      }
     }
   }
 
