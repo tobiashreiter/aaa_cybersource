@@ -134,6 +134,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
         ],
       ])
       ->setDisplayConfigurable('view', TRUE)
+      ->setDisplayConfigurable('form', TRUE)
       ->setRequired(TRUE);
 
     $fields['submitted'] = BaseFieldDefinition::create('datetime')
@@ -161,6 +162,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
           'link_to_entity' => FALSE,
         ],
       ])
+      ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
     $fields['customer_id'] = BaseFieldDefinition::create('string')
@@ -174,6 +176,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
           'link_to_entity' => FALSE,
         ],
       ])
+      ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
     $fields['authorized_amount'] = BaseFieldDefinition::create('float')
@@ -191,6 +194,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
           'prefix_suffix' => TRUE,
         ],
       ])
+      ->setDisplayConfigurable('form', TRUE)
       ->setRequired(TRUE);
 
     $fields['currency'] = BaseFieldDefinition::create('string')
@@ -205,6 +209,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
           'link_to_entity' => FALSE,
         ],
       ])
+      ->setDisplayConfigurable('form', TRUE)
       ->setRequired(TRUE);
 
     $fields['status'] = BaseFieldDefinition::create('string')
@@ -218,6 +223,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
           'link_to_entity' => FALSE,
         ],
       ])
+      ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
     $fields['recurring'] = BaseFieldDefinition::create('boolean')
@@ -232,6 +238,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
         ],
       ])
       ->setDisplayConfigurable('view', TRUE)
+      ->setDisplayConfigurable('form', TRUE)
       ->setRequired(TRUE);
 
     $fields['environment'] = BaseFieldDefinition::create('string')
@@ -246,6 +253,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
         ],
       ])
       ->setRequired(TRUE)
+      ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
     $fields['submission'] = BaseFieldDefinition::create('entity_reference')
@@ -261,6 +269,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
           'link' => TRUE,
         ],
       ])
+      ->setDisplayConfigurable('form', TRUE)
       ->setRequired(FALSE);
 
     $fields['recurring_active'] = BaseFieldDefinition::create('boolean')
@@ -348,6 +357,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
         ],
       ])
       ->setCardinality(-1)
+      ->setDisplayConfigurable('form', TRUE)
       ->setRequired(FALSE);
 
     $fields['secure_payment_id'] = BaseFieldDefinition::create('string')
@@ -361,6 +371,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
           'link_to_entity' => FALSE,
         ],
       ])
+      ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
     $fields['transaction_id'] = BaseFieldDefinition::create('string')
@@ -374,6 +385,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
           'link_to_entity' => FALSE,
         ],
       ])
+      ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
     $fields['order_details'] = BaseFieldDefinition::create('string')
@@ -397,6 +409,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
         'label' => 'above',
         'weight' => 2,
       ])
+      ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
     return $fields;
