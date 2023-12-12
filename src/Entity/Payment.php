@@ -124,6 +124,15 @@ class Payment extends ContentEntityBase implements PaymentInterface {
     $fields['code'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Code'))
       ->setDescription(t('Merchant-generated order reference or tracking number. It is recommended that you send a unique value for each transaction so that you can perform meaningful searches for the transaction.'))
+      ->setDisplayOptions('form', [
+        'type' => 'string_textfield',
+        'region' => 'content',
+        'weight' => -1,
+        'settings' => [
+          'size' => 60,
+          'placeholder' => '',
+        ],
+      ])
       ->setDisplayOptions('view', [
         'type' => 'title',
         'label' => 'above',
@@ -238,8 +247,7 @@ class Payment extends ContentEntityBase implements PaymentInterface {
         ],
       ])
       ->setDisplayConfigurable('view', TRUE)
-      ->setDisplayConfigurable('form', TRUE)
-      ->setRequired(TRUE);
+      ->setDisplayConfigurable('form', TRUE);
 
     $fields['environment'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Environment'))
@@ -409,7 +417,6 @@ class Payment extends ContentEntityBase implements PaymentInterface {
         'label' => 'above',
         'weight' => 2,
       ])
-      ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
     return $fields;

@@ -13,6 +13,7 @@ use CyberSource\Api\InstrumentIdentifierApi;
 use CyberSource\Api\MicroformIntegrationApi;
 use CyberSource\Api\PaymentsApi;
 use CyberSource\Api\PaymentInstrumentApi;
+use CyberSource\Api\SearchTransactionsApi;
 use CyberSource\Api\TransactionDetailsApi;
 
 use CyberSource\Authentication\Core\MerchantConfiguration;
@@ -21,6 +22,7 @@ use CyberSource\Logging\LogConfiguration;
 
 use CyberSource\Model\CapturePaymentRequest;
 use CyberSource\Model\CreatePaymentRequest;
+use CyberSource\Model\CreateSearchRequest;
 use CyberSource\Model\GenerateCaptureContextRequest;
 use CyberSource\Model\Ptsv2paymentsOrderInformation;
 use CyberSource\Model\Ptsv2paymentsTokenInformation;
@@ -832,6 +834,30 @@ class CybersourceClient {
     }
 
     return $return;
+  }
+
+  /**
+   * Creates and returns a Transactions search request.
+   *
+   * @param array $data
+   * @return CreateSearchRequest
+   */
+  public function createSearchRequest(array $data) {
+    return new CreateSearchRequest($data);
+  }
+
+  /**
+   * Processes a Transaction search.
+   *
+   * @param CreateSearchRequest $csr
+   * @return array $result
+   */
+  public function createSearch(CreateSearchRequest $csr) {
+    $api_instance = new SearchTransactionsApi($this->apiClient);
+    $api_instance->setApiClient($this->apiClient);
+    $result = $api_instance->createSearch($csr);
+
+    return $result;
   }
 
   /**
