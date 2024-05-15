@@ -15,6 +15,19 @@ aaa_cybersource.templates:
   parent: system.admin_config_cybersource
   route_name: aaa_cybersource.manage_templates
   weight: 10
+aaa_cybersource.gala_receipt_message:
+  title: 'Gala Donation Receipt Message'
+  description: 'Edit the receipt sent to a donor when they make a donation on the Gala page'
+  parent: system.admin_config_cybersource
+  url: 'internal:/support/gala-receipt-message'
+  weight: 10
+aaa_cybersource.donation_receipt_message:
+  title: 'Standard Donation Receipt Message'
+  description: 'Edit the receipt sent to a donor when they make a donation on the standard Donation page'
+  parent: system.admin_config_cybersource
+  url: 'internal:/support/donation-receipt-message'
+  weight: 10
+
 entity.payment.settings:
   title: Payment
   description: Configure a Payment entity type
