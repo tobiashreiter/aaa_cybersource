@@ -150,3 +150,11 @@ function aaa_cybersource_update_9006() {
   }
 
 }
+/**
+ * Create node for holding the Gala & Support Receipt Message Contents
+ */
+function aaa_cybersource_update_9019() {
+
+	$receiptsService = \Drupal::service('aaa_cybersource.receipts');
+	$receiptsService->createReceiptMessagePages();
+}
