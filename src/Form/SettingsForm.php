@@ -236,6 +236,8 @@ class SettingsForm extends ConfigFormBase {
 
       if ($this->forms[$form_id]['webform'] === TRUE) {
         $config->set($form_id . '_code', $form_state->getValue($form_id . '_code', 'AAA'));
+        $config->set($form_id . '_message_subject', $form_state->getValue($form_id . '_message_subject'));
+        $config->set($form_id . '_message_body', $form_state->getValue($form_id . '_message_body'));
       }
     }
 
@@ -426,16 +428,34 @@ class SettingsForm extends ConfigFormBase {
         $form['forms']['tabs'][$form_id][$key] = [
           '#title' => $this->t('Code prefix'),
           '#type' => 'textfield',
-          '#description' => $this->t('The site generates its own unique code for each transaction. By default this is "AAA" but if you prefer to vary it by the type of form you may change it in this setting.'),
+          '#description' => $this->t('The site generates its own unique code for each transaction. By default this is "AAA" but if you prefer to vary it by the type of form you may change it in this setting. For Gala pages, the code needs to have "Gala" as part of the code.'),
           '#default_value' => $this->config('aaa_cybersource.settings')->get($key) ?? '',
-          '#placeholder' => $this->t('AAA'),
-          '#maxlength' => 16,
-          '#attributes' => [
-            'class' => ['form-element--type-text--uppercase'],
-            'style' => ['text-transform: uppercase;'],
-          ],
+          '#placeholder' => $this->t('Thank you for supporting the Archives of American Art.'),
         ];
       }
+
+      if ($this->forms[$form_id]['webform'] === TRUE) {
+      	$key = $form_id . '_message_subject';
+      	$form['forms']['tabs'][$form_id][$key] = [
+      			'#title' => $this->t('Receipt Message Subject'),
+      			'#type' => 'textfield',
+      			'#description' => $this->t('This is the subject that will also be used when sending the confirmation email.'),
+      			'#default_value' => $this->config('aaa_cybersource.settings')->get($key) ?? '',
+      			'#placeholder' => $this->t('Thank you for supporting the Archives of American Art.'),
+      	];
+      }
+
+      if ($this->forms[$form_id]['webform'] === TRUE) {
+      	$key = $form_id . '_message_body';
+      	$form['forms']['tabs'][$form_id][$key] = [
+      			'#title' => $this->t('Receipt Message Body'),
+      			'#type' => 'textarea',
+      			'#description' => $this->t('This is the message that will be displayed in the confirmation form, and will also be used when sending the confirmation email.'),
+      			'#default_value' => $this->config('aaa_cybersource.settings')->get($key) ?? '',
+      			'#placeholder' => $this->t('Thank you for supporting the Archives of American Art. We appreciate your support'),
+      	];
+      }
+
 
       $key = $form_id . '_environment';
       $form['forms']['tabs'][$form_id][$key] = [

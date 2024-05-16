@@ -8,9 +8,6 @@ use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\aaa_cybersource\Entity\Payment;
-use Drupal\node\Entity\Node;
-use Drupal\Component\Utility\Html;
-use Drupal\Core\Entity\EntityTypeManager;
 
 /**
  * Defines a receipts service with helpful methods to build receipts.
@@ -69,20 +66,6 @@ class Receipts {
   protected $connection;
 
   /**
-   * EntityTypeManager
-   *
-   * @var Drupal\Core\Entity\EntityTypeManager;
-   */
-  protected $entityTypeManager;
-
-  /**
-   * Donation Receipt Types
-   *
-   * @var array;
-   */
-  protected $receiptTypes = ['',''];
-
-  /**
    * Constructs a new Receipt object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -92,7 +75,7 @@ class Receipts {
    * @param \Drupal\Core\Logger\LoggerChannelFactory $logger_factory
    *   Logging in drupal.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, DateFormatterInterface $date_formatter, LoggerChannelFactory $logger_factory, Connection $connection, QueueFactory $queue, Mailer $mailer, CybersourceClient $client, EntityTypeManager $entity_type_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, DateFormatterInterface $date_formatter, LoggerChannelFactory $logger_factory, Connection $connection, QueueFactory $queue, Mailer $mailer, CybersourceClient $client) {
     $this->configFactory = $config_factory;
     $this->dateFormatter = $date_formatter;
     $this->loggerFactory = $logger_factory->get('aaa_cybersource');
@@ -100,20 +83,40 @@ class Receipts {
     $this->queue = $queue;
     $this->mailer = $mailer;
     $this->cybersourceClient = $client;
-    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
    * Return receipt email subject line.
    *
-   * @param Payment $payment
+   * @return string
+   *   subject line.
+   */
+  public function getSubject(Payment $payment): string {
+  	return $this->getFormSettingForPayment($payment, 'message_subject');
+  }
+
+  /**
+   * Return receipt message, which is used on confirmation page and in email messages.
    *
    * @return string
    *   subject line.
    */
-  public function getSubject(Payment $payment) {
-  	$donationType = $this->getDonationTypeFromPayment($payment);
-    return $this->getReceiptSubjectLineByCode($donationType);
+  public function getMessage(Payment $payment) {
+  	return $this->getFormSettingForPayment($payment, 'message_body');
+  }
+	/**
+	 * I find a setting in the current webform that matches for the given payment
+	 *
+	 * @param Payment $payment
+	 * @param string $field
+	 * @return string
+	 */
+  public function getFormSettingForPayment(Payment $payment,string $field): string {
+  	// Drill down until we retrieve the id of the webform; the payment is associated to a given webform submission, and then this links back to the webform
+    $webform_id = $payment->submission->entity->webform_id->entity->id();
+    $settings = $this->configFactory->get('aaa_cybersource.settings');
+    // We have custom settings for each Cybersource webform, and this pulls the value for the specified key
+    return $settings->get($webform_id . '_' . '$field');
   }
 
   /**
@@ -127,13 +130,13 @@ class Receipts {
    * @return array
    *   Build array.
    */
-  public function buildReceiptElements(Payment $payment, array $transaction) {
+  public function buildReceiptElements(Payment $payment, array $transaction, string $webform_id = null) {
     $billTo = $transaction[0]->getOrderInformation()->getBillTo();
     $paymentInformation = $transaction[0]->getPaymentInformation();
     $card = $paymentInformation->getCard();
     $amountDetails = $transaction[0]->getOrderInformation()->getAmountDetails();
     $datetime = $transaction[0]->getSubmitTimeUTC();
-    $donationType = $this->getDonationTypeFromPayment($payment);
+    $donationType = strpos($payment->get('code')->value, 'GALA') > -1 ? 'GALA' : 'DONATION';
 
     // Build receipt.
     $build['title'] = [
@@ -393,7 +396,8 @@ class Receipts {
       '#type' => 'container',
     ];
 
-    $markup = $this->getReceiptContentsByCode($donationType);
+    // Get the message receipt body for the given webform; this is configured in the settings for the webform on the Cybersource Form Settings page
+    $markup = "<p>" . $this->getMessage($payment) . "</p>";
 
     $build['message']['title'] = [
       '#type' => 'html_tag',
@@ -420,12 +424,12 @@ class Receipts {
   /**
    * Build an email body. This is the email template.
    *
-   * @param Payment $payment
+   * @param Drupal\aaa_cybersource\Entity\Payment $payment
    *   Payment entity.
-   * @param  $billTo
-   * @param  $paymentInformation
-   * @param  $amountDetails
-   * @param  $datetime
+   * @param [type]  $billTo
+   * @param [type]  $paymentInformation
+   * @param [type]  $amountDetails
+   * @param [type]  $datetime
    *
    * @return string $body
    */
@@ -437,7 +441,7 @@ class Receipts {
     $body = '';
 
 $body .= "
-" . $this->getReceiptContentsByCodeAsText($donationType) . "
+" . $this->getMessage($payment) . "
 ";
 
 $body .= "
@@ -522,7 +526,7 @@ $ {$amount}
     $amountDetails = $transaction[0]->getOrderInformation()->getAmountDetails();
     $datetime = $transaction[0]->getSubmitTimeUTC();
     $body = $this->buildReceiptEmailBody($payment, $billTo, $paymentInformation, $amountDetails, $datetime);
-    $subject = $this->getSubject($payment);
+    $subject = $this->getSubject();
 
     if (is_null($to) === TRUE) {
       $to = $billTo->getEmail();
@@ -640,191 +644,6 @@ $ {$amount}
    */
   protected function cardTypeNumberToString($code) {
     return aaa_cybersource_card_type_number_to_string($code);
-  }
-
-  /**
-   * I return the donation type ('Gala' or 'Donation') based on the payment information
-   *
-   * @param Payment $payment
-   * @return string
-   */
-  protected function getDonationTypeFromPayment(Payment $payment): string {
-  	return strpos($payment->get('code')->value, 'GALA') > -1 ? 'GALA' : 'DONATION';
-  }
-
-  /**
-   * Returns the supported receipt pages for donations, used for managing receipt notification subjects and notifications
-   *
-   * @return string[][]
-   */
-  protected function getReceiptPages() {
-  	return [ "GALA" =>
-								  			[
-								  					'title' => 'Edit Gala Receipt Message (Internal Only)',
-								  					'subtitle' => 'Thank you for your support of the Archives of American Art Gala',
-								  					'body' => '<p>Thank you for your support of the Archives of American Art Gala.</p>'
-								  			],
-  					 "DONATION" =>
-								  			[
-								  					'title' => 'Edit Donation Receipt Message (Internal Only)',
-								  					'subtitle' => 'Thank you for your support of the Archives of American Art',
-								  					'body' => '<p>Thank you for your support of the Archives of American Art.</p>'
-								  			]
-  	];
-
-  }
-  // Strip HTML tags and decode HTML entities to get text-only version.
-
-
-  /**
-   * I return the subject line for a given receipt based on a given code
-   *
-   * @param string $code
-   * @return string
-   */
-  protected function getReceiptSubjectLineByCode(string $code): string {
-  	return $this->getReceiptFieldValueByCode($code, 'field_subheading');
-  }
-
-
-  /**
-   * I return the contents (in text format) for a given receipt based on a given code (by stripping out HTML and decoding any entities
-   *
-   * @param string $code
-   * @return string
-   */
-  protected function getReceiptContentsByCodeAsText(string $code): string {
-  	$receiptContents = $this->getReceiptContentsByCode($code);
-  	return strip_tags(Html::decodeEntities($receiptContents));
-  }
-
-  /**
-   * I return the contents (in HTML) for a given receipt based on a given code
-   *
-   * @param string $code
-   * @return string
-   */
-  protected function getReceiptContentsByCode(string $code): string {
-  	return $this->getReceiptFieldValueByCode($code, 'body');
-  }
-
-  /**
-   * I return the value of a node field for a given receipt based on a given code
-   *
-   * @param string $code
-   * @return string
-   */
-  protected function getReceiptFieldValueByCode(string $code, string $field): string {
-  	$receiptPageNode = $this->getReceiptPageNodeByCode($code);
-  	return $receiptPageNode->get($field)->value;
-  }
-
-	/**
-	 * I return the node matching a given code among the pages set up for storing receipt messages
-	 *
-	 * @param string $code
-	 * @return Node
-	 */
-  protected function getReceiptPageNodeByCode(string $code): Node {
-  	$receiptPages = $this->getReceiptPages();
-  	$title = $receiptPages[$code]['title'];
-
-		return $this->getReceiptPageNodeByTitle($title);
-  }
-
-  /**
-	 * I return the node matching a given title among the pages set up for storing receipt messages
-   *
-   * @param string $title
-   * @return Node
-   */
-  protected function getReceiptPageNodeByTitle(string $title): Node {
-  	$matchingNodes = $this->entityTypeManager->getStorage('node')->loadByProperties(['title' => $title ]);
-
-  	if (!empty($matchingNodes)) {
-  		$receiptPageNode = reset($matchingNodes);
-  	}
-  	else {
-  		// Create a new node.
-  		$receiptPageNode = Node::create(['type' => 'page']);
-  	}
-
-  	return $receiptPageNode;
-  }
-
-  /**
-   * I create all of the desired receipt page nodes for managing receipt messages
-   *
-   */
-  public function createReceiptMessagePages(): void {
-
-  	$receiptPages = $this->getReceiptPages();
-
-
-  	foreach ( $receiptPages as $page => $pageValues ) {
-  		$pageNodeTitle = $pageValues['title'];
-  		$pageNodeSubTitle = $pageValues['subtitle'];
-  		$pageNodeBody = $pageValues['body'];
-
-  		$receiptPageNode = $this->getReceiptPageNodeByTitle($pageNodeTitle);
-
-  		$receiptPageNode->set('title', [
-  				'value' => $pageNodeTitle,
-  		]);
-
-  		$receiptPageNode->set('field_title_html', [
-  				'value' => $pageNodeTitle,
-  				'format' => 'basic_html', // Adjust the text format as needed.
-  		]);
-
-  		$receiptPageNode->set('field_subheading', [
-  				'value' => $pageNodeSubTitle,
-  				'format' => 'basic_html', // Adjust the text format as needed.
-  		]);
-
-  		$receiptPageNode->set('status', 0);
-  		$receiptPageNode->set('body', [
-  				'value' => $pageNodeBody,
-  				'format' => 'full_html', // Adjust the text format as needed.
-  		]);
-
-  		// Load the taxonomy term.
-  		$taxonomy_vocabulary = 'Section'; // Replace 'section' with the machine name of your taxonomy vocabulary.
-  		$term_name = 'Support'; // Replace 'Support' with the name of the term you want to reference.
-  		$terms = $this->entityTypeManager->getStorage('taxonomy_term')->loadByProperties(['vid' => $taxonomy_vocabulary, 'name' => $term_name]);
-  		$term = reset($terms);
-
-  		if ($term) {
-  			// Set the taxonomy term reference field.
-  			$receiptPageNode->set('field_section', $term);
-  		}
-  		$receiptPageNode->save();
-
-  		$pathAlias = "/" . strtolower($term_name) . "/" . strtolower($page) . '-receipt-message';
-
-
-  		/*
-  		// Check if the path alias already exists.
-  		if ($alias_manager->aliasExists($receiptPageNode->toUrl()->getInternalPath(), 'en')) {
-  			// If the alias already exists, delete it first.
-  			$alias_manager->deleteByPath($receiptPageNode->toUrl()->getInternalPath(), 'en');
-  		}
-			*/
-
-  		// Get the Path Alias Manager storage.
-  		$pathAliasManager = $this->entityTypeManager->getStorage('path_alias');
-
-  		$aliasObjects = $pathAliasManager->loadByProperties([
-  				'path'     => '/' . $receiptPageNode->toUrl()->getInternalPath(),
-  				'langcode' => 'en'
-  		]);
-
-  		foreach($aliasObjects as $aliasObject) {
-  			$aliasObject->alias = $pathAlias;
-  			$aliasObject->save();
-  		}
-
-  	}
   }
 
 }
