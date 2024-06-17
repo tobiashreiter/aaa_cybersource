@@ -33,7 +33,7 @@ class Receipts {
   /**
    * Logger Factory Interface.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelFactory
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
    */
   protected $loggerFactory;
 
@@ -522,9 +522,19 @@ $ {$amount}
 
     if ($result['send'] === TRUE) {
       $context = [
-        '@code' => $payment->get('code')->value,
-        'link' => $payment->toLink('View', 'canonical')->toString(),
+        '@code' => $payment->get('code')->value ?? 'unknown code',
       ];
+
+      // Attempt to link to the payment.
+      try {
+        $link = $payment->toLink('View', 'canonical')->toString();
+
+        $content['link'] = $link;
+      }
+      catch (\Exception $e) {
+        $this->loggerFactory->error('Error generating link: @error', ['@error' => $e->getMessage()]);
+      }
+
       $this->loggerFactory->info('Payment code @code receipt emailed.', $context);
     }
 
