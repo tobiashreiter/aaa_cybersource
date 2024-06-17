@@ -529,7 +529,7 @@ $ {$amount}
       try {
         $link = $payment->toLink('View', 'canonical')->toString();
 
-        $content['link'] = $link;
+        $context['link'] = $link;
       }
       catch (\Exception $e) {
         $this->loggerFactory->error('Error generating link: @error', ['@error' => $e->getMessage()]);
