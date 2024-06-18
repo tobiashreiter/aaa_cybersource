@@ -377,7 +377,7 @@ class DonationWebformHandler extends WebformHandlerBase {
       // $i is the row index
       for ($i=1; $i < $numberOfRowsToCheck; $i++) {
           // The table uses a two digit code (leading zero) for table fields
-          $twoDigitKey = '0' . $i;
+          $twoDigitKey = str_pad($i,2,'0',STR_PAD_LEFT);
           // Check for the existence of the row -- it might be missing, or we might have gotten to the end of the table (THR)
           if (isset($data['gala_' . $twoDigitKey . '_quantity'])) {
               $ticketQuantity = $data['gala_' . $twoDigitKey . '_quantity'] > 0 ? $data['gala_' . $twoDigitKey . '_quantity'] : '';
