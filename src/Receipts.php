@@ -113,7 +113,8 @@ class Receipts {
 	 */
 	public function getFormSettingForPayment(Payment $payment,string $field): string {
 		// Drill down until we retrieve the id of the webform; the payment is associated to a given webform submission, and then this links back to the webform
-		$webform_id = $payment->submission->entity->webform_id->entity->id();
+		$webform = $payment->submission->entity->webform_id->entity;
+		$webform_id = $webform->get('uuid');
 		$settings = $this->configFactory->get('aaa_cybersource.settings');
 		// We have custom settings for each Cybersource webform, and this pulls the value for the specified key
 		return $settings->get($webform_id . '_' . $field);
@@ -130,7 +131,7 @@ class Receipts {
 	 * @return array
 	 *   Build array.
 	 */
-	public function buildReceiptElements(Payment $payment, array $transaction, string $webform_id = null) {
+	public function buildReceiptElements(Payment $payment, array $transaction) {
 		$billTo = $transaction[0]->getOrderInformation()->getBillTo();
 		$paymentInformation = $transaction[0]->getPaymentInformation();
 		$card = $paymentInformation->getCard();
@@ -526,7 +527,7 @@ return $body;
 		$amountDetails = $transaction[0]->getOrderInformation()->getAmountDetails();
 		$datetime = $transaction[0]->getSubmitTimeUTC();
 		$body = $this->buildReceiptEmailBody($payment, $billTo, $paymentInformation, $amountDetails, $datetime);
-		$subject = $this->getSubject();
+		$subject = $this->getSubject($payment);
 
 		if (is_null($to) === TRUE) {
 			$to = $billTo->getEmail();
