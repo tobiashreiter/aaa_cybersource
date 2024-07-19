@@ -121,7 +121,7 @@ function aaa_cybersource_update_9004() {
  * Order details needs a different field type.
  */
 function aaa_cybersource_update_9006() {
-  // Install new field.    
+  // Install new field.
   $orderDetails = BaseFieldDefinition::create('string_long')
     ->setLabel(t('Order details'))
     ->setDescription(t('Specific details regarding the order.'))
@@ -149,4 +149,20 @@ function aaa_cybersource_update_9006() {
     $payment->save();
   }
 
+}
+
+/**
+ * Update all Cybersource webform entity routes.
+ */
+function aaa_cybersource_update_10000() {
+  $webformIds = \Drupal::entityTypeManager()->getStorage('webform')->getQuery()
+    ->getQuery()
+    ->condition('template', TRUE, '<>')
+    ->accessCheck(FALSE)
+    ->execute();
+
+  $webformEntities = \Drupal::entityTypeManager()->getStorage('webform')->loadMultiple($webformIds);
+  foreach ($webformEntities as $webformEntity) {
+    aaa_cybersource_webform_update($webformEntity);
+  }
 }
