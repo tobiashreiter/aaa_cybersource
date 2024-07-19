@@ -63,13 +63,14 @@ function aaa_cybersource_update_9001() {
  */
 function aaa_cybersource_update_9002() {
   $authorized_payments = \Drupal::entityQuery('payment')
-  ->condition('status', 'AUTHORIZED')
-  ->condition('secure_payment_id', NULL, 'IS NULL')
-  ->condition('transaction_id', NULL, 'IS NULL')
-  ->condition('recurring_active', FALSE)
-  ->sort('changed', 'DESC')
-  ->range(0, 10)
-  ->execute();
+    ->condition('status', 'AUTHORIZED')
+    ->condition('secure_payment_id', NULL, 'IS NULL')
+    ->condition('transaction_id', NULL, 'IS NULL')
+    ->condition('recurring_active', FALSE)
+    ->sort('changed', 'DESC')
+    ->range(0, 10)
+    ->accessCheck(FALSE)
+    ->execute();
 
   $payments = Payment::loadMultiple($authorized_payments);
   $cybersourceClient = \Drupal::service('aaa_cybersource.cybersource_client');
@@ -137,9 +138,10 @@ function aaa_cybersource_update_9006() {
 
   // Collect existing data and add it to new field.
   $payments_with_data = \Drupal::entityQuery('payment')
-  ->condition('order_details', NULL, 'IS NOT NULL')
-  ->sort('changed', 'DESC')
-  ->execute();
+    ->condition('order_details', NULL, 'IS NOT NULL')
+    ->sort('changed', 'DESC')
+    ->accessCheck(FALSE)
+    ->execute();
 
   $payments = Payment::loadMultiple($payments_with_data);
 

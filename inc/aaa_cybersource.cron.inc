@@ -13,6 +13,7 @@ function aaa_cybersource_cron() {
   // Check for authorized pending review.
   $pending_review = \Drupal::entityQuery('payment')
     ->condition('status', 'AUTHORIZED_PENDING_REVIEW')
+    ->accessCheck(FALSE)
     ->execute();
 
   $pening_review_payments = Payment::loadMultiple($pending_review);
@@ -62,6 +63,7 @@ function aaa_cybersource_cron() {
   // Check for transmitted payments.
   $pending_transmission = \Drupal::entityQuery('payment')
     ->condition('status', ['AUTHORIZED', 'PENDING'], 'IN')
+    ->accessCheck(FALSE)
     ->execute();
 
   $pending_transmission_payments = Payment::loadMultiple($pending_transmission);
