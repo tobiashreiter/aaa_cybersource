@@ -155,7 +155,7 @@ function aaa_cybersource_update_9006() {
  * Update all Cybersource webform entity routes.
  */
 function aaa_cybersource_update_10000() {
-  $webformIds = \Drupal::entityTypeManager()->getStorage('webform')->getQuery()
+  $webformIds = \Drupal::entityTypeManager()->getStorage('webform')
     ->getQuery()
     ->condition('template', TRUE, '<>')
     ->accessCheck(FALSE)
