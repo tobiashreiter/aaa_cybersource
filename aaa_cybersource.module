@@ -62,7 +62,7 @@ function aaa_cybersource_webform_submission_insert(WebformSubmissionInterface $e
  * Implements hook_theme_suggestions_HOOK().
  */
 function aaa_cybersource_theme_suggestions_webform_confirmation(array $variables) {
-  if ($variables['webform']->get('category') === 'Cybersource') {
+  if (in_array('Cybersource', $variables['webform']->get('categories'))) {
     return ['webform_confirmation__cybersource__receipt'];
   }
 }
@@ -73,7 +73,7 @@ function aaa_cybersource_theme_suggestions_webform_confirmation(array $variables
  * Copy the Webform alias updater and add a '/receipt' route.
  */
 function aaa_cybersource_webform_insert($entity) {
-  if ($entity->get('category') === 'Cybersource') {
+  if (in_array('Cybersource', $entity->get('categories'))) {
     aaa_cybersource_add_receipt_alias($entity);
   }
 }
@@ -84,7 +84,7 @@ function aaa_cybersource_webform_insert($entity) {
  * Copy the Webform alias updater and add a '/receipt' route.
  */
 function aaa_cybersource_webform_update($entity) {
-  if ($entity->get('category') === 'Cybersource') {
+  if (in_array('Cybersource', $entity->get('categories'))) {
     aaa_cybersource_add_receipt_alias($entity);
   }
 }
