@@ -4,6 +4,7 @@ flex:
     js/flex.js: {}
   dependencies:
     - core/drupalSettings
+    - core/once
     - aaa_cybersource/flex-microform
 
 flex-dev:
@@ -12,6 +13,7 @@ flex-dev:
     js/flex.js: {}
   dependencies:
     - core/drupalSettings
+    - core/once
     - aaa_cybersource/flex-microform-dev
 
 flex-microform:
